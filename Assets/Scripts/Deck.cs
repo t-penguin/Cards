@@ -72,7 +72,7 @@ public class Deck : MonoBehaviour
         for(int i = 0; i < cardsToGive; i++)
         {
             int playerIndex = (playerOffset + i) % numPlayers;
-            players[playerIndex].RecieveCard(Cards[deckOffset + i]);
+            players[playerIndex].ReceiveCard(Cards[deckOffset + i]);
         }
     }
 }
