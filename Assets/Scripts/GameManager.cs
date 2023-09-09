@@ -12,26 +12,59 @@ public class GameManager : MonoBehaviour
 
     [field: SerializeField] public List<Player> Players { get; private set; }
     [field: SerializeField] public Deck Deck { get; private set; }
+    [field: SerializeField] public DeckType DeckType { get; private set; }
+    public Dictionary<string, Sprite> CardSprites;
 
-    private int dealerIndex;
-    private int deckIndex;
+    private int _dealerIndex;
+    private int _deckIndex;
+
+    #region Monobehaviour Callbacks
+
+    private void Awake()
+    {
+        LoadCardSprites();
+    }
 
     private void Start()
     {
-        Deck.CreateDeck(DeckType.Star_Red);
+        Deck.CreateDeck(DeckType.Star_Blue);
     }
+
+    #endregion
 
     public void Deal()
     {
-        Deck.Deal(Players, dealerIndex + 1, deckIndex);
-        dealerIndex++;
-        deckIndex += Players.Count * 4;
-
-        // Deal 4 to table
-        if(deckIndex == Players.Count * 4)
+        // Deal to table on first turn
+        if(_deckIndex == 0)
         {
-            deckIndex += 4;
+            _deckIndex += 4;
         }
-        HandDealt?.Invoke(deckIndex);
+
+        Deck.Deal(Players, _dealerIndex + 1, _deckIndex);
+        _deckIndex += Players.Count * 4;
+        
+        HandDealt?.Invoke(_deckIndex);
+    }
+
+    private void LoadCardSprites()
+    {
+        string deckName = DeckType.ToString().Split("_")[0];
+        Sprite[] sprites = Resources.LoadAll<Sprite>($"Textures/{deckName} Cards");
+        CardSprites = new Dictionary<string, Sprite>();
+
+        for(int i = 0; i < sprites.Length; i++)
+        {
+            string name = sprites[i].name;
+            name = name.Replace($"{deckName}_", "");
+            CardSprites.Add(name, sprites[i]);
+        }
+    }
+
+    public Sprite GetCardSpriteByName(string name)
+    {
+        if (CardSprites.ContainsKey(name))
+            return CardSprites[name];
+        else
+            return null;
     }
 }
