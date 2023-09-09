@@ -1,12 +1,15 @@
 using System.Collections;
 using System.Collections.Generic;
+using System;
 using UnityEngine;
 
 public class Player : MonoBehaviour
 {
-    [field: SerializeField] public string Name { get; private set; }
-    [field: SerializeField] public List<Card> Hand { get; private set; }
+    public static event Action<Player, Card> ReceivedCard;
 
+    [field: SerializeField] public string Name { get; private set; }
+    [field: SerializeField] public int ID { get; set; }
+    [field: SerializeField] public List<Card> Hand { get; private set; }
 
     private void Start()
     {
@@ -22,5 +25,6 @@ public class Player : MonoBehaviour
         }
 
         Hand.Add(card);
+        ReceivedCard?.Invoke(this, card);
     }
 }
