@@ -15,6 +15,11 @@ public class Card
         FaceValue = fValue;
         NumberValue = (int)FaceValue;
     }
+
+    public override string ToString()
+    {
+        return $"{FaceValue} of {Suit}";
+    }
 }
 
 public enum Suit
