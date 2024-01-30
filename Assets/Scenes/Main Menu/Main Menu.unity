@@ -2487,9 +2487,9 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 477687848}
-        m_TargetAssemblyTypeName: MainUI, Assembly-CSharp
-        m_MethodName: OnReturnToMain
+      - m_Target: {fileID: 477687846}
+        m_TargetAssemblyTypeName: Main, Assembly-CSharp
+        m_MethodName: Disconnect
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}

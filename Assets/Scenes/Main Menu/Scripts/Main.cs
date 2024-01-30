@@ -57,11 +57,23 @@ public class Main : PunBehaviour
         // Already connected
         if(PhotonNetwork.connected)
         {
-            Debug.Log("Already connected.");
+            Debug.Log("Attempted to connect but the client is already connected.");
         }
         else
         {
             PhotonNetwork.ConnectUsingSettings(_gameVersion);
+        }
+    }
+
+    public void Disconnect()
+    {
+        if(PhotonNetwork.connected)
+        {
+            PhotonNetwork.Disconnect();
+        }
+        else
+        {
+            Debug.Log("Attempted to disconnect but the client is already disconnected.");
         }
     }
 

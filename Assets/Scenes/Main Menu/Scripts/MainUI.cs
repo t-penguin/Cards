@@ -21,6 +21,12 @@ public class MainUI : PunBehaviour
         OnMultiplayerSelected();
     }
 
+    public override void OnDisconnectedFromPhoton()
+    {
+        OnReturnToMain();
+        Debug.Log("Disconnected from Photon Network.");
+    }
+
     #endregion
 
     public void OnMultiplayerSelected()
