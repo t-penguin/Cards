@@ -8,7 +8,7 @@ using Photon.Realtime;
 
 public class Main : PunBehaviour
 {
-    [field: SerializeField] public string PlayerName { get; private set; }
+    public static string PlayerName { get; private set; }
     [field: SerializeField] public string RoomCode { get; private set; }
 
     const string _gameVersion = "0.0.1";
@@ -19,7 +19,7 @@ public class Main : PunBehaviour
 
     [SerializeField] TMP_InputField _roomCodeInput;
 
-    #region Unity Messages
+    #region Monobehaviour Callbacks
 
     private void Awake()
     {
@@ -42,7 +42,7 @@ public class Main : PunBehaviour
 
     public override void OnJoinedRoom()
     {
-        Debug.Log($"Joined room with code {PhotonNetwork.room.Name} as {PhotonNetwork.player.NickName}");
+        Debug.Log($"Joined room with code {PhotonNetwork.room.Name} as {PhotonNetwork.playerName}");
 
         if(PhotonNetwork.isMasterClient)
         {
@@ -85,7 +85,7 @@ public class Main : PunBehaviour
         if (!IsCodeValid())
             return;
 
-        PhotonNetwork.player.NickName = PlayerName;
+        PhotonNetwork.playerName = PlayerName;
         Debug.Log($"Attempting to join the room with code {RoomCode} as {PlayerName}.");
         if(PhotonNetwork.connected)
         {
