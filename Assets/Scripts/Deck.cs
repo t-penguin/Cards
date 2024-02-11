@@ -7,12 +7,15 @@ public class Deck : MonoBehaviour
 {
     public static event Action<DeckType> DeckCreated;
 
-    [field: SerializeField] public Card[] Cards { get; private set; }
+    [field: SerializeField] public List<Card> Cards { get; private set; }
+    public Card[] CardsArray { get { return Cards.ToArray(); } }
+
+    [SerializeField] GameManager _gameManager;
 
     // Creates an array of cards (the deck) using the suit and face value enums
     public void CreateDeck(DeckType type)
     {
-        Cards = new Card[52];
+        Cards = new List<Card>();
         DeckCreated?.Invoke(type);
 
         int index = 0;
@@ -20,10 +23,12 @@ public class Deck : MonoBehaviour
         {
             foreach (FaceValue fValue in Enum.GetValues(typeof(FaceValue)))
             {
-                Cards[index] = new Card(suit, fValue);
+                Cards.Add(new Card(suit, fValue));
                 index++;
             }
         }
+
+        Debug.Log($"Created a new deck of size {Cards.Count}.");
     }
 
     // Fisher-Yates shuffle
@@ -46,40 +51,100 @@ public class Deck : MonoBehaviour
         Debug.Log("Deck shuffled!");
     }
 
-    /// <summary>
-    /// Deals cards to a set of players
-    /// </summary>
-    /// <param name="players">The list of players currently in the game.</param>
-    /// <param name="playerOffset">The offset used to determine who gets dealt to first.</param>
-    /// <param name="deckOffset">The offset used to determine where in the deck to deal from.</param>
-    public void Deal(List<Player> players, int playerOffset, int deckOffset)
+    public Card[,] DealHands(int numPlayers)
     {
-        if(Cards == null)
-        {
-            Debug.LogError("Attempted to deal but the deck has not been created!");
-            return;
-        }
+        // Error handling
 
-        int numPlayers = players.Count;
-        if (numPlayers < 2 || numPlayers > 4)
+        // Invalid number of Players
+        if(numPlayers < GameManager.MIN_PLAYERS || numPlayers > GameManager.MAX_PLAYERS)
         {
             Debug.LogError($"Attempted to deal but the number of players ({numPlayers}) is invalid!");
-            return;
+            return null;
         }
 
+        // Deck hasn't been created
+        if(Cards == null)
+        {
+            Debug.LogWarning("Attempted to deal but the deck has not been created yet.");
+            Debug.Log("Creating a new deck, shuffling it, then dealing...");
+            CreateDeck(_gameManager.DeckType);
+            Shuffle();
+        }
+
+        // No cards left
+        int cardsLeft = Cards.Count;
+        if (cardsLeft == 0)
+        {
+            Debug.LogError("Attempted to deal but there were no cards left. Round should end.");
+            return null;
+        }
+
+        // Not enough cards left
         int cardsToGive = numPlayers * 4;
-        int remainingCards = 52 - deckOffset;
-        if(cardsToGive > remainingCards || remainingCards % cardsToGive != 0)
+        if(cardsToGive > cardsLeft)
         {
-            Debug.LogError($"Attempted to deal but the number of remaining cards ({remainingCards}) is invalid!");
-            return;
+            Debug.LogError($"Attempted to deal but there weren't enough cards ({cardsLeft} remain)." +
+                $"Something went wrong somewhere...");
+            return null;
         }
 
-        for(int i = 0; i < cardsToGive; i++)
+        Card[,] hands = new Card[numPlayers, 4];
+
+        /* Deal four cards to each hand
+         * i represents the card index in the player's hand
+         * j represents the player hand's index in the list of hands */
+        for(int i = 0; i < 4; i++)
         {
-            int playerIndex = (playerOffset + i) % numPlayers;
-            players[playerIndex].ReceiveCard(Cards[deckOffset + i]);
+            for(int j = 0; j < numPlayers; j++)
+            {
+                hands[j,i] = Cards[0];
+                Cards.RemoveAt(0);
+            }
         }
+
+        return hands;
+    }
+
+    public Card[] DealTable()
+    {
+        // Error Handling
+
+        // Deck hasn't been created
+        if (Cards == null)
+        {
+            Debug.LogWarning("Attempted to deal but the deck has not been created yet.");
+            Debug.Log("Creating a new deck, shuffling it, then dealing...");
+            CreateDeck(_gameManager.DeckType);
+            Shuffle();
+        }
+
+        // No cards left
+        int cardsLeft = Cards.Count;
+        if (cardsLeft == 0)
+        {
+            Debug.LogError("Attempted to deal but there were no cards left. Round should end.");
+            return null;
+        }
+
+        // Not enough cards left
+        if (cardsLeft < 4)
+        {
+            Debug.LogError($"Attempted to deal but there weren't enough cards ({cardsLeft} remain)." +
+                $"Something went wrong somewhere...");
+            return null;
+        }
+
+
+        // Deal to table hand list
+        Card[] tableHand = new Card[4];
+
+        for(int i = 0; i < 4; i++)
+        {
+            tableHand[i] = Cards[0];
+            Cards.RemoveAt(0);
+        }
+
+        return tableHand;
     }
 }
 
