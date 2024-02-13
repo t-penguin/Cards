@@ -114,36 +114,6 @@ public class TableVisual : PunBehaviour
 
     #endregion
 
-    public IEnumerator DealToHand(Card[] cardsToDeal, List<PlayerManager> players, int playerOffset)
-    {
-        // Input validation
-        int numPlayers = players.Count;
-        if (numPlayers == 0)
-        {
-            Debug.LogError("No players to deal to!");
-            yield break;
-        }
-
-        int numCards = cardsToDeal.Length;
-        if (numCards == 0 || numCards != numPlayers * 4)
-        {
-            Debug.LogError($"Invalid number of cards to deal. Expected: {numPlayers * 4} - Actual: {numCards}");
-            yield break;
-        }
-
-        playerOffset %= numPlayers;
-
-        // FIXME: Get here eventually
-        for(int i = 0; i < numCards; i++)
-        {
-            int index = (playerOffset + i) % numPlayers;
-            PlayerManager currentPlayer = players[index];
-            
-
-        }
-        yield break;
-    }
-
     #region PUN Event Callbacks
 
     private void OnTurnOrderSet(byte eventCode, object content, int senderId)
@@ -216,7 +186,7 @@ public class TableVisual : PunBehaviour
         for (int i = 0; i < playerCount; i++)
         {
             PhotonPlayer player = TurnOrder[(i + _tablePlayerOffset) % playerCount];
-            // FIXME: Correctly set the player ID image here
+            // TODO: [CARDS] Correctly set the player ID image here
             _activePlayerPanels[i].GetComponentInChildren<IDCardVisual>()
                 .SetIDCard(player.NickName, null);
         }
@@ -323,7 +293,11 @@ public class TableVisual : PunBehaviour
         // Flip the card face up
         Sprite cardSprite = GameManager.GetCardSpriteByName(cardName);
         cardVisualImage.sprite = cardSprite;
-        cardVisual.SetActive(true);
+
+        // Cards that are flipped are also interactable
+        CardInteraction cardInteraction = cardVisual.GetComponent<CardInteraction>();
+        cardInteraction.CardType = targetHand == _tableHand ? CardType.OnTable : CardType.InHand;
+        cardInteraction.Card = new Card(cardName);
 
         yield break;
     }
