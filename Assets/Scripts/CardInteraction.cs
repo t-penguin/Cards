@@ -4,39 +4,59 @@ using UnityEngine.EventSystems;
 
 public class CardInteraction : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler, IPointerClickHandler
 {
-    public static event Action<CardType, bool, RectTransform> HoverCard;
-    public static event Action<CardType, RectTransform, PointerEventData> SelectCard;
+    public static event Action<CardInteraction, PointerEventData> ClickedCard;
 
-    [SerializeField] CardType _cardType;
-    RectTransform _rect;
+    [field: SerializeField] public CardType CardType { get; set; }
+    [SerializeField] GameObject _selector;
+
+    public Card Card { get; set; }
+    public bool IsSelected { get; set; }
 
     private void Awake()
     {
-        _rect = GetComponent<RectTransform>();
+        IsSelected = false;
     }
 
     #region Pointer Callbacks
 
     public void OnPointerEnter(PointerEventData eventData)
     {
-        HoverCard?.Invoke(_cardType, true, _rect);
+        if (CardType == CardType.OtherPlayer)
+            return;
+
+        if (IsSelected)
+            return;
+
+        _selector.SetActive(true);
     }
 
     public void OnPointerExit(PointerEventData eventData)
     {
-        HoverCard?.Invoke(_cardType, false, _rect);
+        if (CardType == CardType.OtherPlayer)
+            return;
+
+        if (IsSelected)
+            return;
+
+        _selector.SetActive(false);
     }
 
     public void OnPointerClick(PointerEventData eventData)
     {
-        SelectCard?.Invoke(_cardType, _rect, eventData);
+        if (CardType == CardType.OtherPlayer)
+            return;
+
+        ClickedCard?.Invoke(this, eventData); 
     }
 
     #endregion
+
+    public void HideSelector() => _selector.SetActive(false);
 }
 
 public enum CardType
 {
     InHand,
-    InPlay
+    OnTable,
+    OtherPlayer
 }
