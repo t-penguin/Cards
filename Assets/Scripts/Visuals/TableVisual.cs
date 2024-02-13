@@ -89,6 +89,8 @@ public class TableVisual : PunBehaviour
     [SerializeField] RectTransform _deck;
     [SerializeField] RectTransform[] _playerHands;
     [SerializeField] GameObject[] _playerPanels;
+    [SerializeField] RectTransform _tableHand;
+    [SerializeField] GameObject _tablePanel;
     [SerializeField] GameObject _startMenu;
 
     List<GameObject> _activePlayerPanels;
@@ -223,6 +225,7 @@ public class TableVisual : PunBehaviour
             panel.SetActive(true);
 
         _deck.gameObject.SetActive(true);
+        _tablePanel.SetActive(true);
 
         Debug.Log("Setting Table");
 
@@ -244,83 +247,94 @@ public class TableVisual : PunBehaviour
         PhotonPlayer[] TurnOrder =
             (PhotonPlayer[])PhotonNetwork.room.CustomProperties[GameManager.TURN_ORDER_KEY];
 
-        int playerCount = TurnOrder.Length;
+        // Get the player hands from the room properties
+        List<string[]> playerHands = new List<string[]>();
+        foreach (PhotonPlayer player in TurnOrder)
+        {
+            string key = $"{GameManager.PLAYER_HAND_KEY}: {player.NickName}";
+            playerHands.Add((string[])PhotonNetwork.room.CustomProperties[key]);
+        }
 
+        int playerCount = TurnOrder.Length;
         // Outer loop goes 4 times to give each player 4 cards
         for (int i = 0; i < 4; i++)
         {
             // Inner loop goes through each player
             for (int j = 0; j < playerCount; j++)
             {
+                PhotonPlayer player = TurnOrder[j];
                 int playerIndex = (playerCount - _tablePlayerOffset + j) % playerCount;
-                yield return StartCoroutine(DealToPlayer(TurnOrder[j], i, playerIndex));
+
+                RectTransform target = _activePlayerHands[playerIndex];
+                string cardName = playerHands[j][i];
+                bool flipCard = player == PhotonNetwork.player;
+
+                yield return StartCoroutine(DealCard(target, cardName, flipCard));
             }
         }
         
         yield break;
     }
 
-    // FIXME: Deal cards to each player here
-    private IEnumerator DealToPlayer(PhotonPlayer player, int cardIndex, int playerIndex)
+    // Visually deals cards from the deck to the table
+    private IEnumerator DealToTable()
+    {
+        string[] cardNames = (string[])PhotonNetwork.room.CustomProperties[GameManager.TABLE_HAND_KEY];
+
+        for (int i = 0; i < 4; i++)
+        {
+            yield return StartCoroutine(DealCard(_tableHand, cardNames[i], true));
+        }
+    }
+
+    private IEnumerator DealCard(RectTransform targetHand, string cardName, bool flip)
     {
         Sprite backSprite = GameManager.GetCardSpriteByName($"Back_{GameManager.DeckColor}");
 
         // Create a card at the deck location face down
-        Transform tableTransform = _deck.parent.transform;
-        GameObject cardVisual = Instantiate(_cardVisualPrefab, tableTransform);
+        GameObject cardVisual = Instantiate(_cardVisualPrefab, _deck);
+        cardVisual.transform.SetParent(_deck.parent.transform);
         cardVisual.SetActive(false);
 
         RectTransform cardVisualTransform = cardVisual.GetComponent<RectTransform>();
         Image cardVisualImage = cardVisual.GetComponent<Image>();
 
         cardVisualImage.sprite = backSprite;
-        RectTransform cardTransform = cardVisual.GetComponent<RectTransform>();
+        cardVisual.SetActive(true);
 
-        // Move and rotate the card to the player's hand location
-        RectTransform playerHand = _activePlayerHands[playerIndex];
-        Vector2 targetPosition = playerHand.anchoredPosition;
-        float targetRotationZ = playerHand.eulerAngles.z;
+        // Move and rotate the card to the target hand location
+        Vector2 targetPosition = targetHand.anchoredPosition;
+        Vector3 targetRotation = targetHand.eulerAngles;
 
-        cardTransform.anchorMin = playerHand.anchorMin;
-        cardTransform.anchorMax = playerHand.anchorMax;
+        cardVisualTransform.anchorMin = targetHand.anchorMin;
+        cardVisualTransform.anchorMax = targetHand.anchorMax;
 
-        //FIXME: Working here
+        yield return MoveAndRotateCard(cardVisualTransform, targetPosition, targetRotation);
+
         cardVisualTransform.anchoredPosition = targetPosition;
-        cardVisualTransform.eulerAngles = new Vector3(0, 0, targetRotationZ);
+        cardVisualTransform.eulerAngles = targetRotation;
 
-        // Parent the card to the player's hand
-        cardVisualTransform.SetParent(_activePlayerHands[playerIndex].transform);
+        // Parent the card to the target hand
+        cardVisualTransform.SetParent(targetHand);
 
-        
-        if (!(player == PhotonNetwork.player))
-        {
-            cardVisual.SetActive(true);
+        if (!flip)
             yield break;
-        }
 
-        // If the player is the local client, flip the card face up
-        Card card = GetCurrentCard(player, cardIndex);
-        Sprite cardSprite = GameManager.GetCardSpriteByName(card.Name);
+        // Flip the card face up
+        Sprite cardSprite = GameManager.GetCardSpriteByName(cardName);
         cardVisualImage.sprite = cardSprite;
         cardVisual.SetActive(true);
 
         yield break;
     }
 
-    // Visually deals cards from the deck to the table
-    private IEnumerator DealToTable()
+    private IEnumerator MoveAndRotateCard(RectTransform cardTransform, Vector3 targetPosition, Vector3 targetRotation)
     {
+        Debug.Log("Move and Rotate NYI...");
         yield break;
     }
 
     #endregion
-
-    private Card GetCurrentCard(PhotonPlayer player, int cardIndex)
-    {
-        string key = $"{GameManager.PLAYER_HAND_KEY}: {player.NickName}";
-        string[] cardNames = (string[])PhotonNetwork.room.CustomProperties[key];
-        return new Card(cardNames[cardIndex]);
-    }
 
     private void AddActive(int index)
     {
