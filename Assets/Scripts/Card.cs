@@ -38,14 +38,13 @@ public class Card
 
     [field: SerializeField] public Suit Suit { get; private set; }
     [field: SerializeField] public FaceValue FaceValue { get; private set; }
-    [field: SerializeField] public int NumberValue { get; private set; }
+    public int NumberValue { get { return (int)FaceValue; } }
     public string Name { get { return $"{Suit}_{FaceValue}"; } }
 
     public Card(Suit suit, FaceValue fValue)
     {
         Suit = suit;
         FaceValue = fValue;
-        NumberValue = (int)FaceValue;
     }
 
     public Card(string name)
@@ -55,7 +54,6 @@ public class Card
 
         Suit = SuitDictionary[suitName];
         FaceValue = FaceValueDictionary[faceValue];
-        NumberValue = (int)FaceValue;
     }
 
     public override string ToString()
