@@ -1,5 +1,6 @@
 using System;
 using UnityEngine;
+using UnityEngine.UI;
 using UnityEngine.EventSystems;
 
 public class CardInteraction : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler, IPointerClickHandler
@@ -52,6 +53,10 @@ public class CardInteraction : MonoBehaviour, IPointerEnterHandler, IPointerExit
     #endregion
 
     public void HideSelector() => _selector.SetActive(false);
+
+    public Image GetSelectorImage() => _selector.GetComponent<Image>();
+
+    public void ResizeSelector(Vector2 size) => _selector.GetComponent<RectTransform>().sizeDelta = size;
 }
 
 public enum CardType
