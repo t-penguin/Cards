@@ -31,14 +31,10 @@ public class GameManager : MonoBehaviour
 
     [field: SerializeField] public Deck Deck { get; private set; }
     [field: SerializeField] public DeckType DeckType { get; private set; }
-    
 
     private int _dealerIndex;
-    private int _round;
-    private int _maxRounds;
     private int _playerCount;
     private Hashtable _roomProperties;
-    private Hashtable[] _playerProperties = new Hashtable[4];
 
     #region Monobehaviour Callbacks
 
@@ -66,11 +62,13 @@ public class GameManager : MonoBehaviour
     private void OnEnable()
     {
         PhotonNetwork.OnEventCall += OnTableSet;
+        PhotonNetwork.OnEventCall += OnTurnEnded;
     }
 
     private void OnDisable()
     {
         PhotonNetwork.OnEventCall -= OnTableSet;
+        PhotonNetwork.OnEventCall -= OnTurnEnded;
     }
 
     #endregion
@@ -79,11 +77,20 @@ public class GameManager : MonoBehaviour
 
     private void OnTableSet(byte eventCode, object content, int senderID)
     {
-        if(eventCode != TableVisual.TABLE_SET_EVENT_CODE)
+        if (eventCode != TableVisual.TABLE_SET_EVENT_CODE)
             return;
 
         Debug.Log("Table Set");
         StartSet();
+    }
+
+    private void OnTurnEnded(byte eventCode, object content, int senderID)
+    {
+        if (eventCode != TurnManager.TURN_ENDED_EVENT_CODE)
+            return;
+
+        Debug.Log("Turn ended");
+        AdvanceTurn();
     }
 
     #endregion
@@ -94,11 +101,17 @@ public class GameManager : MonoBehaviour
             return;
 
         _playerCount = PhotonNetwork.room.PlayerCount;
+        if (_playerCount < MIN_PLAYERS || _playerCount > MAX_PLAYERS)
+        {
+            Debug.Log($"Invalid number of players ({_playerCount}), cannot start game");
+            return;
+        }
+
         _dealerIndex %= _playerCount;
 
         if (_playerCount == 4)
         {
-            // FIXME: Figure out turn setting for 4 players
+            // TODO: [CARDS] Figure out turn setting for 4 players
             return;
         }
 
@@ -109,6 +122,8 @@ public class GameManager : MonoBehaviour
 
         _roomProperties[TURN_ORDER_KEY] = TurnOrder;
         PhotonNetwork.room.SetCustomProperties(_roomProperties);
+
+        TableVisual.LogTurnOrder();
 
         PhotonNetwork.RaiseEvent(TURN_ORDER_SET_EVENT_CODE, eventContent: null, 
             sendReliable: true, EventOptions);
@@ -125,16 +140,10 @@ public class GameManager : MonoBehaviour
         if (!PhotonNetwork.isMasterClient)
             return;
 
-        PhotonPlayer[] TurnOrder = (PhotonPlayer[])PhotonNetwork.room.CustomProperties[TURN_ORDER_KEY];
-
         Deck.CreateDeck(DeckType);
         Deck.Shuffle();
 
-        int index = 0;
-        Card[,] playerHands = Deck.DealHands(_playerCount);
-        foreach (PhotonPlayer player in TurnOrder)
-            AddPlayerHandToProperties(player, playerHands, index++);
-
+        DealAndSetPlayerProperties();
         AddTableHandToProperties();
         AddDeckToProperties();
 
@@ -142,7 +151,8 @@ public class GameManager : MonoBehaviour
         _roomProperties[MAX_ROUNDS_KEY] = 48 / _playerCount;
 
         PhotonNetwork.room.SetCustomProperties(_roomProperties);
-        TableVisual.LogPlayerHands(TurnOrder);
+        PhotonNetwork.room.SetTurn(0);
+        TableVisual.LogPlayerHands();
 
         Debug.Log("Starting Game");
 
@@ -155,17 +165,24 @@ public class GameManager : MonoBehaviour
     /// </summary>
     public void AdvanceSet()
     {
-        if(_round == _maxRounds)
+        int round = (int)PhotonNetwork.room.CustomProperties[CURRENT_ROUND_KEY];
+        int maxRounds = (int)PhotonNetwork.room.CustomProperties[MAX_ROUNDS_KEY];
+
+        if(round == maxRounds)
         {
             EndSet();
             return;
         }
 
-        Card[,] playerHands = Deck.DealHands(_playerCount);
-        _round++;
+        DealAndSetPlayerProperties();
+        round++;
 
-        int roundsLeft = _maxRounds - _round;
-        // HandDealt?.Invoke(playerHands, null, roundsLeft);
+        PhotonNetwork.room.SetCustomProperties(new Hashtable { { CURRENT_ROUND_KEY, round} });
+        PhotonNetwork.room.SetTurn(0);
+
+        Debug.Log($"Advancing set to Round {round}");
+        PhotonNetwork.RaiseEvent(GAME_SET_STARTED, eventContent: null,
+            sendReliable: true, EventOptions);
     }
 
     /// <summary>
@@ -175,7 +192,42 @@ public class GameManager : MonoBehaviour
     {
         _dealerIndex++;
         _dealerIndex %= _playerCount;
-        _round = 0;
+    }
+
+    private void AdvanceTurn()
+    {
+        if (!PhotonNetwork.isMasterClient)
+            return;
+
+        int currentTurn = PhotonNetwork.room.GetTurn();
+        currentTurn++;
+        int turnsPerRound = _playerCount * 4;
+
+        if (currentTurn < turnsPerRound)
+        {
+            Debug.Log($"Advancing to turn {currentTurn}");
+
+            PhotonNetwork.room.SetTurn(currentTurn);
+            PhotonNetwork.RaiseEvent(TurnManager.TURN_STARTED_EVENT_CODE, eventContent: null,
+                sendReliable: true, EventOptions);
+            return;
+        }
+
+        if (currentTurn == turnsPerRound)
+        {
+            AdvanceSet();
+            return;
+        }
+    }
+
+    private void DealAndSetPlayerProperties()
+    {
+        PhotonPlayer[] TurnOrder = (PhotonPlayer[])PhotonNetwork.room.CustomProperties[TURN_ORDER_KEY];
+
+        int index = 0;
+        Card[,] playerHands = Deck.DealHands(_playerCount);
+        foreach (PhotonPlayer player in TurnOrder)
+            AddPlayerHandToProperties(player, playerHands, index++);
     }
 
     /// <summary>
