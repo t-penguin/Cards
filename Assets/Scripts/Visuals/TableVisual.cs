@@ -367,7 +367,7 @@ public class TableVisual : PunBehaviour
     {
         int senderIndex = dropInfo[0];
         Debug.Log($"Sender index in the turn order is: {senderIndex}");
-        int senderTableIndex = (senderIndex + _tablePlayerOffset) % _playerCount;
+        int senderTableIndex = (senderIndex - _tablePlayerOffset + _playerCount) % _playerCount;
         RectTransform senderHand = _activePlayerHands[senderTableIndex];
         CardInteraction[] senderCards = senderHand.GetComponentsInChildren<CardInteraction>();
 
