@@ -123,7 +123,7 @@ public class GameManager : MonoBehaviour
         _roomProperties[TURN_ORDER_KEY] = TurnOrder;
         PhotonNetwork.room.SetCustomProperties(_roomProperties);
 
-        TableVisual.LogTurnOrder();
+        CasinoDebugInfo.LogTurnOrder();
 
         PhotonNetwork.RaiseEvent(TURN_ORDER_SET_EVENT_CODE, eventContent: null, 
             sendReliable: true, EventOptions);
@@ -152,7 +152,7 @@ public class GameManager : MonoBehaviour
 
         PhotonNetwork.room.SetCustomProperties(_roomProperties);
         PhotonNetwork.room.SetTurn(0);
-        TableVisual.LogPlayerHands();
+        CasinoDebugInfo.LogPlayerHands();
 
         Debug.Log("Starting Game");
 
