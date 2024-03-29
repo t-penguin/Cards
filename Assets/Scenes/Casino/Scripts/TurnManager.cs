@@ -10,13 +10,14 @@ using System.Linq;
 public class TurnManager : MonoBehaviour
 {
     // TODO: [CARDS] Figure out turn actions and events
+    /* Possible Turn Actions:
+     * X Drop Card
+     *   Stack Cards
+     *   Take Card(s)
+     * */
     // TODO: [CARDS] Add clear stacks button
 
     private const string TARGET_VALUE_TEXT = "Target Value:";
-
-    public const byte TURN_STARTED_EVENT_CODE = 6;
-    public const byte TURN_ENDED_EVENT_CODE = 7;
-    public const byte TURN_DROP_CARD_EVENT_CODE = 8;
 
     [SerializeField] GameObject _playerHand;
     [SerializeField] GameObject _buttonsPanel;
@@ -68,7 +69,7 @@ public class TurnManager : MonoBehaviour
 
     private void OnSetStarted(byte eventCode, object content, int senderID)
     {
-        if (eventCode != GameManager.GAME_SET_STARTED)
+        if (eventCode != EventManager.GAME_SET_STARTED)
             return;
 
         TurnOrder = (PhotonPlayer[])PhotonNetwork.room.CustomProperties[GameManager.TURN_ORDER_KEY];
@@ -77,7 +78,7 @@ public class TurnManager : MonoBehaviour
 
     private void OnTurnStarted(byte eventCode, object content, int senderId)
     {
-        if (eventCode != TURN_STARTED_EVENT_CODE)
+        if (eventCode != EventManager.TURN_STARTED_EVENT_CODE)
             return;
 
         if (_playerCards == null || _playerCards.Count == 0)
@@ -95,7 +96,7 @@ public class TurnManager : MonoBehaviour
 
     private void OnTurnEnded(byte eventCode, object content, int senderId)
     {
-        if(eventCode != TURN_ENDED_EVENT_CODE)
+        if(eventCode != EventManager.TURN_ENDED_EVENT_CODE)
             return;
 
         if (_currentTurnIndex != _playerTurnIndex)
@@ -186,6 +187,7 @@ public class TurnManager : MonoBehaviour
 
     #region Button Actions
 
+    // Drops the selected card from the player's hand
     public void DropCard()
     {
         string cardName = _selectedHandCard.Card.Name;
@@ -216,8 +218,7 @@ public class TurnManager : MonoBehaviour
 
         _buttonsPanel.SetActive(false);
 
-        PhotonNetwork.RaiseEvent(TURN_DROP_CARD_EVENT_CODE, eventContent: dropInfo,
-            sendReliable: true, GameManager.EventOptions);
+        EventManager.RaisePhotonEvent(EventManager.TURN_DROP_CARD_EVENT_CODE, dropInfo);
     }
 
     // Sets the selected card as the target value and updates the text
@@ -237,6 +238,7 @@ public class TurnManager : MonoBehaviour
         SetSelectorColor(_targetValueCard, _redOutline);
     }
 
+    // Attempts to add the selected cards to the stack
     public void StackCards()
     {
         // Total up the value of all the selected cards
@@ -254,14 +256,15 @@ public class TurnManager : MonoBehaviour
         {
             stackValue += _selectedHandCard.Card.NumberValue;
         }
-         
+        
+        // Invalid selection due to stack value
         if (stackValue != _targetValue)
         {
-            // Invalid selection
             Debug.Log($"Stack value of {stackValue} does not match the target value of {_targetValue}");
             return;
         }
 
+        // Outline stacked cards in blue to show that they're part of the stack
         foreach (CardInteraction cardInteraction in _selectedTableCards)
         {
             SetSelectorColor(cardInteraction, _blueOutline);

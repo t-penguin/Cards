@@ -16,13 +16,6 @@ public class GameManager : MonoBehaviour
     public const string CURRENT_ROUND_KEY = "Current Round";
     public const string MAX_ROUNDS_KEY = "Max Rounds";
 
-    public const byte TURN_ORDER_SET_EVENT_CODE = 1;
-    public const byte GAME_SET_STARTED = 3;
-    public const byte GAME_SET_ADVANCED = 4;
-    public const byte GAME_SET_ENDED = 5;
-
-    public static RaiseEventOptions EventOptions = new RaiseEventOptions { Receivers = ReceiverGroup.All };
-
     public static event Action<List<List<Card>>, List<Card>, int> HandDealt;
     public static event Action DealFinished;
 
@@ -77,7 +70,7 @@ public class GameManager : MonoBehaviour
 
     private void OnTableSet(byte eventCode, object content, int senderID)
     {
-        if (eventCode != TableVisual.TABLE_SET_EVENT_CODE)
+        if (eventCode != EventManager.TABLE_SET_EVENT_CODE)
             return;
 
         Debug.Log("Table Set");
@@ -86,7 +79,7 @@ public class GameManager : MonoBehaviour
 
     private void OnTurnEnded(byte eventCode, object content, int senderID)
     {
-        if (eventCode != TurnManager.TURN_ENDED_EVENT_CODE)
+        if (eventCode != EventManager.TURN_ENDED_EVENT_CODE)
             return;
 
         Debug.Log("Turn ended");
@@ -125,8 +118,7 @@ public class GameManager : MonoBehaviour
 
         CasinoDebugInfo.LogTurnOrder();
 
-        PhotonNetwork.RaiseEvent(TURN_ORDER_SET_EVENT_CODE, eventContent: null, 
-            sendReliable: true, EventOptions);
+        EventManager.RaisePhotonEvent(EventManager.TURN_ORDER_SET_EVENT_CODE);
     }
 
     /// <summary>
@@ -156,8 +148,7 @@ public class GameManager : MonoBehaviour
 
         Debug.Log("Starting Game");
 
-        PhotonNetwork.RaiseEvent(GAME_SET_STARTED, eventContent: null,
-            sendReliable: true, EventOptions);
+        EventManager.RaisePhotonEvent(EventManager.GAME_SET_STARTED);
     }
 
     /// <summary>
@@ -181,8 +172,7 @@ public class GameManager : MonoBehaviour
         PhotonNetwork.room.SetTurn(0);
 
         Debug.Log($"Advancing set to Round {round}");
-        PhotonNetwork.RaiseEvent(GAME_SET_STARTED, eventContent: null,
-            sendReliable: true, EventOptions);
+        EventManager.RaisePhotonEvent(EventManager.GAME_SET_STARTED);
     }
 
     /// <summary>
@@ -208,8 +198,7 @@ public class GameManager : MonoBehaviour
             Debug.Log($"Advancing to turn {currentTurn}");
 
             PhotonNetwork.room.SetTurn(currentTurn);
-            PhotonNetwork.RaiseEvent(TurnManager.TURN_STARTED_EVENT_CODE, eventContent: null,
-                sendReliable: true, EventOptions);
+            EventManager.RaisePhotonEvent(EventManager.TURN_STARTED_EVENT_CODE);
             return;
         }
 

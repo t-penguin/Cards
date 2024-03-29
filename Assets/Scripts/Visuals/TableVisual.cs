@@ -9,8 +9,6 @@ using Hashtable = ExitGames.Client.Photon.Hashtable;
 
 public class TableVisual : PunBehaviour
 {
-    public const byte TABLE_SET_EVENT_CODE = 2;
-
     private const int BOTTOM = 0;
     private const int LEFT = 1;
     private const int TOP = 2;
@@ -68,7 +66,7 @@ public class TableVisual : PunBehaviour
 
     private void OnTurnOrderSet(byte eventCode, object content, int senderId)
     {
-        if (eventCode != GameManager.TURN_ORDER_SET_EVENT_CODE)
+        if (eventCode != EventManager.TURN_ORDER_SET_EVENT_CODE)
             return;
 
         HideStartMenu();
@@ -77,7 +75,7 @@ public class TableVisual : PunBehaviour
 
     private void OnGameSetStarted(byte eventCode, object content, int senderId)
     {
-        if (eventCode != GameManager.GAME_SET_STARTED)
+        if (eventCode != EventManager.GAME_SET_STARTED)
             return;
 
         Debug.Log("Game Started");
@@ -88,7 +86,7 @@ public class TableVisual : PunBehaviour
 
     private void OnDroppedCard(byte eventCode, object content, int senderId)
     {
-        if (eventCode != TurnManager.TURN_DROP_CARD_EVENT_CODE)
+        if (eventCode != EventManager.TURN_DROP_CARD_EVENT_CODE)
             return;
 
         int[] dropInfo = (int[])content;
@@ -169,8 +167,7 @@ public class TableVisual : PunBehaviour
         Debug.Log("Setting Table");
 
         if (PhotonNetwork.isMasterClient)
-            PhotonNetwork.RaiseEvent(TABLE_SET_EVENT_CODE, eventContent: null,
-                sendReliable: true, GameManager.EventOptions);
+            EventManager.RaisePhotonEvent(EventManager.TABLE_SET_EVENT_CODE);
     }
 
     #endregion
@@ -187,8 +184,7 @@ public class TableVisual : PunBehaviour
             yield return StartCoroutine(DealToTable());
 
         if (PhotonNetwork.isMasterClient)
-            PhotonNetwork.RaiseEvent(TurnManager.TURN_STARTED_EVENT_CODE, eventContent: null,
-                sendReliable: true, GameManager.EventOptions);
+            EventManager.RaisePhotonEvent(EventManager.TURN_STARTED_EVENT_CODE);
     }
 
     // Visually deals cards from the deck to the players
@@ -319,8 +315,7 @@ public class TableVisual : PunBehaviour
         card.CardType = CardType.OnTable;
 
         if(PhotonNetwork.isMasterClient)
-            PhotonNetwork.RaiseEvent(TurnManager.TURN_ENDED_EVENT_CODE, eventContent: null,
-                sendReliable: true, GameManager.EventOptions);
+            EventManager.RaisePhotonEvent(EventManager.TURN_ENDED_EVENT_CODE);
 
         yield break;
     }
