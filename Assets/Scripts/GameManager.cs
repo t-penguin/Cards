@@ -27,7 +27,6 @@ public class GameManager : MonoBehaviour
 
     private int _dealerIndex;
     private int _playerCount;
-    private Hashtable _roomProperties;
 
     #region Monobehaviour Callbacks
 
@@ -39,15 +38,6 @@ public class GameManager : MonoBehaviour
     private void Start()
     {
         Deck.CreateDeck(DeckType.Star_Blue);
-        _roomProperties = new Hashtable
-        {
-            { TURN_ORDER_KEY, null },
-            { DECK_KEY, null },
-            { TABLE_HAND_KEY, null },
-            { PLAYER_HAND_KEY, null },
-            { CURRENT_ROUND_KEY, null },
-            { MAX_ROUNDS_KEY, null }
-        };
 
         _dealerIndex = 0;
     }
@@ -113,8 +103,7 @@ public class GameManager : MonoBehaviour
         for (int i = 0; i < _playerCount; i++)
             TurnOrder[(i + _dealerIndex) % _playerCount] = PhotonNetwork.playerList[i];
 
-        _roomProperties[TURN_ORDER_KEY] = TurnOrder;
-        PhotonNetwork.room.SetCustomProperties(_roomProperties);
+        PhotonNetwork.room.SetCustomProperties(new Hashtable { { TURN_ORDER_KEY, TurnOrder} });
 
         CasinoDebugInfo.LogTurnOrder();
 
@@ -139,10 +128,9 @@ public class GameManager : MonoBehaviour
         AddTableHandToProperties();
         AddDeckToProperties();
 
-        _roomProperties[CURRENT_ROUND_KEY] = 1;
-        _roomProperties[MAX_ROUNDS_KEY] = 48 / _playerCount;
-
-        PhotonNetwork.room.SetCustomProperties(_roomProperties);
+        int maxRounds = 48 / _playerCount;
+        Hashtable roundProperties = new Hashtable { { CURRENT_ROUND_KEY, 1 }, { MAX_ROUNDS_KEY, maxRounds } };
+        PhotonNetwork.room.SetCustomProperties(roundProperties);
         PhotonNetwork.room.SetTurn(0);
         CasinoDebugInfo.LogPlayerHands();
 
@@ -156,6 +144,9 @@ public class GameManager : MonoBehaviour
     /// </summary>
     public void AdvanceSet()
     {
+        if (!PhotonNetwork.isMasterClient)
+            return;
+
         int round = (int)PhotonNetwork.room.CustomProperties[CURRENT_ROUND_KEY];
         int maxRounds = (int)PhotonNetwork.room.CustomProperties[MAX_ROUNDS_KEY];
 
@@ -233,7 +224,7 @@ public class GameManager : MonoBehaviour
             hand[i] = hands[orderIndex, i].Name;
 
         string propertyKey = $"{PLAYER_HAND_KEY}: {player.NickName}";
-        _roomProperties[propertyKey] = hand;
+        PhotonNetwork.room.SetCustomProperties(new Hashtable { { propertyKey, hand } });
     }
 
     private void AddTableHandToProperties()
@@ -243,7 +234,7 @@ public class GameManager : MonoBehaviour
         for (int i = 0; i < 4; i++)
             tableHandNames[i] = tableHand[i].Name;
 
-        _roomProperties[TABLE_HAND_KEY] = tableHandNames;
+        PhotonNetwork.room.SetCustomProperties(new Hashtable { { TABLE_HAND_KEY, tableHandNames } });
     }
 
     private void AddDeckToProperties()
@@ -253,7 +244,7 @@ public class GameManager : MonoBehaviour
         for (int i = 0;  i < deck.Length; i++)
             deckNames[i] = deck[i].Name;
 
-        _roomProperties[DECK_KEY] = deckNames;
+        PhotonNetwork.room.SetCustomProperties(new Hashtable { { DECK_KEY, deckNames } });
     }
 
     /// <summary>
