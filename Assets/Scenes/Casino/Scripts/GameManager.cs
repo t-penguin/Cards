@@ -16,10 +16,8 @@ public class GameManager : MonoBehaviour
     public const string CURRENT_ROUND_KEY = "Current Round";
     public const string MAX_ROUNDS_KEY = "Max Rounds";
 
-    public static event Action<List<List<Card>>, List<Card>, int> HandDealt;
-    public static event Action DealFinished;
-
     public static Dictionary<string, Sprite> CardSprites;
+    public static Dictionary<string, Sprite> CardIcons;
     public static string DeckColor;
 
     [field: SerializeField] public Deck Deck { get; private set; }
@@ -32,7 +30,17 @@ public class GameManager : MonoBehaviour
 
     private void Awake()
     {
-        LoadCardSprites();
+        CardSprites = new Dictionary<string, Sprite>();
+        CardIcons = new Dictionary<string, Sprite>();
+
+        string[] deckType = DeckType.ToString().Split("_");
+        string deckName = deckType[0];
+        string path = $"Textures/{deckName} Cards";
+        LoadSprites(CardSprites, path, deckName);
+        path = $"Textures/{deckName} Card Icons";
+        LoadSprites(CardIcons, path, deckName);
+
+        DeckColor = deckType[1];
     }
 
     private void Start()
@@ -248,22 +256,15 @@ public class GameManager : MonoBehaviour
     }
 
     /// <summary>
-    /// Retrieves sprites for all the cards from the Textures folder in Resources using the DeckType. 
-    /// Stores these sprites into a dictionary for quick retrieval.
+    /// Retrieves sprites and icons for all the cards from the Textures folder in Resources
+    /// using the DeckType. Stores these sprites into a dictionary for quick retrieval.
     /// </summary>
-    private void LoadCardSprites()
+    private void LoadSprites(Dictionary<string, Sprite> dictionary, string path, string deckName)
     {
-        string deckName = DeckType.ToString().Split("_")[0];
-        DeckColor = DeckType.ToString().Split("_")[1];
-        Sprite[] sprites = Resources.LoadAll<Sprite>($"Textures/{deckName} Cards");
-        CardSprites = new Dictionary<string, Sprite>();
+        Sprite[] sprites = Resources.LoadAll<Sprite>(path);
 
-        for(int i = 0; i < sprites.Length; i++)
-        {
-            string name = sprites[i].name;
-            name = name.Replace($"{deckName}_", "");
-            CardSprites.Add(name, sprites[i]);
-        }
+        foreach (Sprite sprite in sprites)
+            dictionary.Add(sprite.name.Replace($"{deckName}_", ""), sprite);
     }
 
     /// <summary>
@@ -275,6 +276,14 @@ public class GameManager : MonoBehaviour
     {
         if (CardSprites.ContainsKey(name))
             return CardSprites[name];
+        else
+            return null;
+    }
+
+    public static Sprite GetCardIconByName(string name)
+    {
+        if (CardIcons.ContainsKey(name))
+            return CardIcons[name];
         else
             return null;
     }

@@ -14,7 +14,12 @@ public class TableVisual : PunBehaviour
     private const int TOP = 2;
     private const int RIGHT = 3;
 
+    public static List<CardInteraction> TableHand = new List<CardInteraction>();
+    public static TableSize TableSize = TableSize.Default;
+
     [SerializeField] GameObject _cardVisualPrefab;
+    [SerializeField] GameObject _stackVisualPrefab;
+
     [SerializeField] RectTransform _deck;
     [SerializeField] RectTransform[] _playerHands;
     [SerializeField] GameObject[] _playerPanels;
@@ -28,7 +33,6 @@ public class TableVisual : PunBehaviour
     int _playerCount;
     int _tablePlayerOffset;
 
-    TableSize _tableSize;
     Vector2 _defaultTableSize = new Vector2(550, 575);
     Vector2 _mediumTableSize = new Vector2(820, 575);
     Vector2 _largeTableSize = new Vector2(890, 575);
@@ -44,6 +48,8 @@ public class TableVisual : PunBehaviour
     Vector2 _defaultSpacing = new Vector2(10, 10);
     Vector2 _smallSpacing = new Vector2(5, 10);
 
+    Color _transparent = new Color(0, 0, 0, 0);
+
     #region Monobehaviour Callbacks
 
     private void OnEnable()
@@ -51,6 +57,7 @@ public class TableVisual : PunBehaviour
         PhotonNetwork.OnEventCall += OnTurnOrderSet;
         PhotonNetwork.OnEventCall += OnGameSetStarted;
         PhotonNetwork.OnEventCall += OnDroppedCard;
+        PhotonNetwork.OnEventCall += OnStackedCards;
     }
 
     private void OnDisable()
@@ -58,6 +65,7 @@ public class TableVisual : PunBehaviour
         PhotonNetwork.OnEventCall -= OnTurnOrderSet;
         PhotonNetwork.OnEventCall -= OnGameSetStarted;
         PhotonNetwork.OnEventCall -= OnDroppedCard;
+        PhotonNetwork.OnEventCall -= OnStackedCards;
     }
 
     #endregion
@@ -95,7 +103,11 @@ public class TableVisual : PunBehaviour
 
     private void OnStackedCards(byte eventCode, object content, int senderId)
     {
+        if (eventCode != EventManager.TURN_STACK_CARDS_EVENT_CODE)
+            return;
 
+        int[] stackInfo = (int[])content;
+        StartCoroutine(StackCards(stackInfo));
     }
 
     private void OnTookCards(byte eventCode, object content, int senderId)
@@ -264,8 +276,8 @@ public class TableVisual : PunBehaviour
         // Parent the card to the target hand
         cardVisualTransform.SetParent(targetHand);
 
-        CardInteraction cardInteraction = cardVisual.GetComponent<CardInteraction>();
-        cardInteraction.Card = new Card(cardName);
+        SingleCardInteraction cardInteraction = cardVisual.GetComponent<SingleCardInteraction>();
+        cardInteraction.SetCard(new Card(cardName));
 
         if (!flip)
             yield break;
@@ -277,45 +289,162 @@ public class TableVisual : PunBehaviour
         // Cards that are flipped are also interactable
         cardInteraction.CardType = targetHand == _tableHand ? CardType.OnTable : CardType.InHand;
 
+        // Cards on the table should be added to the table hand list
+        if(cardInteraction.CardType == CardType.OnTable)
+            TableHand.Add(cardInteraction);
+
         yield break;
     }
 
     private IEnumerator DropCard(int[] dropInfo)
     {
+        // Sender Info
         int senderIndex = dropInfo[0];
         Debug.Log($"Sender index in the turn order is: {senderIndex}");
         int senderTableIndex = (senderIndex - _tablePlayerOffset + _playerCount) % _playerCount;
         RectTransform senderHand = _activePlayerHands[senderTableIndex];
-        CardInteraction[] senderCards = senderHand.GetComponentsInChildren<CardInteraction>();
+        SingleCardInteraction[] senderCards = senderHand.GetComponentsInChildren<SingleCardInteraction>();
 
+        // Card Info
         int cardIndex = dropInfo[1];
         Debug.Log($"Card index in sender's hand is: {cardIndex}");
-        CardInteraction card = senderCards[cardIndex];
+        SingleCardInteraction card = senderCards[cardIndex];
         RectTransform cardTransform = card.GetComponent<RectTransform>();
 
+        // Move card and resize if necessary
         Vector3 targetPosition = _tableHand.anchoredPosition;
         Vector3 targetRotation = _tableHand.eulerAngles;
 
         cardTransform.SetParent(_deck.parent);
         yield return StartCoroutine(MoveAndRotateCard(cardTransform, targetPosition, targetRotation));
         cardTransform.SetParent(_tableHand);
-        CheckTableSize();
-
-        if (_tableSize == TableSize.ExtraLarge)
-            card.ResizeSelector(_teenySelectorSize);
-        else if (_tableSize == TableSize.Large)
-            card.ResizeSelector(_smallSelectorSize);
-        else
-            card.ResizeSelector(_defaultSelectorSize);
         
+        // Turn the card face up and add it to the table hand
         Image cardImage = card.GetComponent<Image>();
         string cardName = card.Card.Name;
         Sprite cardSprite = GameManager.GetCardSpriteByName(cardName);
         cardImage.sprite = cardSprite;
         card.CardType = CardType.OnTable;
 
-        if(PhotonNetwork.isMasterClient)
+        TableHand.Add(card);
+        CheckTableSize();
+
+        // End Turn
+        if (PhotonNetwork.isMasterClient)
             EventManager.RaisePhotonEvent(EventManager.TURN_ENDED_EVENT_CODE);
+
+        yield break;
+    }
+
+    private IEnumerator StackCards(int[] stackInfo)
+    {
+        // Sender Info
+        int senderIndex = stackInfo[0];
+        Debug.Log($"Sender index in the turn order is: {senderIndex}");
+        int senderTableIndex = (senderIndex - _tablePlayerOffset + _playerCount) % _playerCount;
+        RectTransform senderHand = _activePlayerHands[senderTableIndex];
+        SingleCardInteraction[] senderCards = senderHand.GetComponentsInChildren<SingleCardInteraction>();
+
+        // Stack Info
+        int stackValue = stackInfo[1];
+        bool locked = stackInfo[2] == 1;
+        Debug.Log($"Stack value: {stackValue}\nLocked: {locked}");
+
+        // Sender's Target Card Info
+        SingleCardInteraction stackTargetCard = null;
+        if (senderTableIndex == 0)
+        {
+            int targetCardIndex = stackInfo[3];
+            stackTargetCard = senderCards[targetCardIndex];
+        }
+
+        // Sender's Hand Card Info
+        int senderCardIndex = stackInfo[4];
+        Debug.Log($"Card index in sender's hand is: {senderCardIndex}");
+        SingleCardInteraction senderCard = senderCards[senderCardIndex];
+        RectTransform senderCardTransform = senderCard.GetComponent<RectTransform>();
+
+        // Table Card(s) Info
+        int[] tableCardIndexes = stackInfo[5..];
+        int numTableCards = tableCardIndexes.Length;
+
+        // DEBUG
+        string infoArray = "";
+        foreach (int info in stackInfo)
+            infoArray += $"{info} ";
+
+        Debug.Log($"Info Array: {infoArray}");
+        Debug.Log($"Number of table cards in stack: {numTableCards}");
+        // END DEBUG
+
+        CardInteraction[] tableCards = new CardInteraction[numTableCards];
+        for (int i = 0; i < numTableCards; i++)
+        {
+            int cardIndex = tableCardIndexes[i];
+            tableCards[i] = TableHand[cardIndex];
+        }
+
+        Vector3 targetPosition = tableCards[0].GetComponent<RectTransform>().anchoredPosition;
+        List<GameObject> visualCards = new List<GameObject>();
+
+        foreach (CardInteraction tableCard in tableCards)
+        {
+            // Create a visual card for the current table card
+            Vector3 cardPosition = tableCard.GetComponent<RectTransform>().anchoredPosition;
+            GameObject cardVisual = Instantiate(_cardVisualPrefab, cardPosition, Quaternion.identity, _deck);
+            visualCards.Add(cardVisual);
+            RectTransform cardTransform = cardVisual.GetComponent<RectTransform>();
+
+            // Change the actual card's image alpha to 0
+            // This keeps all the table cards in their positions until the stack is finished
+            tableCard.GetComponent<Image>().color = _transparent;
+
+            // Move the visual card to the target position
+            yield return StartCoroutine(MoveCard(cardTransform, targetPosition));
+        }
+
+        // Once all visual cards have been moved, move the sender's card to the target position
+        senderCardTransform.SetParent(_deck.parent);
+        yield return StartCoroutine(MoveCard(senderCardTransform, targetPosition));
+
+        // Create the stack card at the target position
+        GameObject stackVisual = Instantiate(_stackVisualPrefab, targetPosition, Quaternion.identity, _deck);
+        StackedCardsInteraction stack = stackVisual.GetComponent<StackedCardsInteraction>();
+        List<CardInteraction> cardsInStack = new List<CardInteraction>{ senderCard };
+        cardsInStack.AddRange(tableCards);
+        stack.CreateStack(senderIndex, stackValue, locked, cardsInStack, stackTargetCard);
+        stackVisual.SetActive(true);
+
+        // Delete all visual cards
+        foreach (GameObject card in visualCards)
+            Destroy(card);
+        visualCards.Clear();
+
+        // Delete all actual cards and the sender's card
+        foreach (CardInteraction card in tableCards)
+            DeleteTableCard(card);
+
+        Destroy(senderCard.gameObject);
+
+        // Add the stack to the table hand at the target position
+        int siblingIndex = tableCards[0].transform.GetSiblingIndex();
+        stackVisual.transform.SetParent(_tableHand);
+        stackVisual.transform.SetSiblingIndex(siblingIndex);
+        TableHand.Add(stack);
+
+        CheckTableSize();
+
+        // End Turn
+        if (PhotonNetwork.isMasterClient)
+            EventManager.RaisePhotonEvent(EventManager.TURN_ENDED_EVENT_CODE);
+
+        yield break;
+    }
+
+    private IEnumerator MoveCard(RectTransform cardTransform, Vector3 targetPosition)
+    {
+        Debug.Log("Move Card NYI...");
+        cardTransform.anchoredPosition = targetPosition;
 
         yield break;
     }
@@ -339,8 +468,7 @@ public class TableVisual : PunBehaviour
 
     private void CheckTableSize()
     {
-        CardInteraction[] tableCards = _tableHand.GetComponentsInChildren<CardInteraction>();
-        int numCards = tableCards.Length;
+        int numCards = TableHand.Count;
 
         Debug.Log($"There are {numCards} cards on the table");
 
@@ -354,20 +482,19 @@ public class TableVisual : PunBehaviour
         else
             targetSize = TableSize.Default;
 
-        Debug.Log($"Table size: {_tableSize} / Target size: {targetSize}");
+        Debug.Log($"Table size: {TableSize} / Target size: {targetSize}");
 
-        if (_tableSize != targetSize)
-            SetTableSize(targetSize, tableCards);
+        if (TableSize != targetSize)
+            SetTableSize(targetSize);
     }
 
-    private void SetTableSize(TableSize size, CardInteraction[] cards = null)
+    private void SetTableSize(TableSize targetSize)
     {
         GridLayoutGroup layout = _tableHand.GetComponent<GridLayoutGroup>();
-        _tableSize = size;
 
         Vector2 selectorSize = _defaultSelectorSize;
 
-        switch (size)
+        switch (targetSize)
         {
             case TableSize.Default:
                 _tableHand.sizeDelta = _defaultTableSize;
@@ -393,17 +520,38 @@ public class TableVisual : PunBehaviour
                 break;
         }
 
-        if (cards == null)
+        TableSize = targetSize;
+
+        if (TableHand.Count == 0)
             return;
 
-        foreach (CardInteraction card in cards)
+        foreach (CardInteraction card in TableHand)
+        {
             card.ResizeSelector(selectorSize);
+            StackedCardsInteraction stack = card as StackedCardsInteraction;
+            if (stack == null)
+                continue;
+
+            stack.ResizeCard();
+        }
 
         Debug.Log($"Selector size should be {selectorSize.x}x{selectorSize.y}");
     }
+
+    private void DeleteTableCard(CardInteraction card)
+    {
+        if (card == null) 
+            return;
+
+        if (!TableHand.Contains(card))
+            return;
+
+        TableHand.Remove(card);
+        Destroy(card.gameObject);
+    }
 }
 
-enum TableSize
+public enum TableSize
 {
     Default,
     Medium,
