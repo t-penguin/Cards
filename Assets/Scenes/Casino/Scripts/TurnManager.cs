@@ -6,13 +6,14 @@ using UnityEngine.EventSystems;
 using TMPro;
 using System;
 using System.Linq;
+using System.Runtime.CompilerServices;
 
 public class TurnManager : MonoBehaviour
 {
     // TODO: [CARDS] Figure out turn actions and events
     /* Possible Turn Actions:
      * X Drop Card
-     *   Stack Cards
+     * X Stack Cards
      *   Take Card(s)
      * */
     // TODO: [CARDS] Add clear stacks button
@@ -23,13 +24,15 @@ public class TurnManager : MonoBehaviour
     [SerializeField] GameObject _buttonsPanel;
     [SerializeField] TextMeshProUGUI _targetValueText;
 
-    List<CardInteraction> _playerCards;
+    List<SingleCardInteraction> _playerCards;
     List<CardInteraction> _selectedTableCards;
     List<CardInteraction> _stackedCards;
-    CardInteraction _selectedHandCard;
-    CardInteraction _targetValueCard;
+    SingleCardInteraction _selectedHandCard;
+    SingleCardInteraction _targetValueCard;
+    List<SingleCardInteraction> _stackTargetCards;
     int _targetValue;
     bool _handCardInStack;
+    bool _stackIsLocked;
 
     PhotonPlayer[] TurnOrder;
     int _playerTurnIndex;
@@ -82,7 +85,7 @@ public class TurnManager : MonoBehaviour
             return;
 
         if (_playerCards == null || _playerCards.Count == 0)
-            _playerCards = _playerHand.GetComponentsInChildren<CardInteraction>().ToList();
+            _playerCards = _playerHand.GetComponentsInChildren<SingleCardInteraction>().ToList();
 
         int currentTurn = PhotonNetwork.room.GetTurn();
         _currentTurnIndex = currentTurn % TurnOrder.Length;
@@ -92,6 +95,8 @@ public class TurnManager : MonoBehaviour
 
         _targetValueText.text = TARGET_VALUE_TEXT;
         _targetValueText.gameObject.SetActive(true);
+
+        _buttonsPanel.SetActive(true);
     }
 
     private void OnTurnEnded(byte eventCode, object content, int senderId)
@@ -109,152 +114,224 @@ public class TurnManager : MonoBehaviour
 
     #region Event Callbacks
 
-    private void OnClickedCard(CardInteraction cardInteraction, PointerEventData eventData)
+    private void OnClickedCard(CardInteraction cardInteraction, InteractionType interactionType,
+                                PointerEventData eventData)
     {
-        if(_currentTurnIndex != _playerTurnIndex)
+        if (_currentTurnIndex != _playerTurnIndex)
             return;
+        
+        if (interactionType == InteractionType.Stack)
+        {
+            StackedCardsInteraction stack = cardInteraction as StackedCardsInteraction;
+            HandleTableClick(stack, eventData);
+            return;
+        }
 
-        CardType cardType = cardInteraction.CardType;
+        SingleCardInteraction card = cardInteraction as SingleCardInteraction;
+
+        CardType cardType = card.CardType;
 
         if (cardType == CardType.InHand)
-        {
-            HandleHandClick(cardInteraction, eventData);
-        }
+            HandleHandClick(card, eventData);
         else if (cardType == CardType.OnTable)
-        {
-            HandleTableClick(cardInteraction, eventData);
-        }
+            HandleTableClick(card, eventData);
     }
 
-    private void HandleHandClick(CardInteraction cardInteraction, PointerEventData eventData)
+    private void HandleHandClick(SingleCardInteraction card, PointerEventData eventData)
     {
+        if (card == null)
+            return;
+
         if (_handCardInStack)
             return;
 
-        bool alreadySelected = cardInteraction.IsSelected;
-        bool handCardIsTarget = _selectedHandCard == _targetValueCard;
-
-        if (alreadySelected && !handCardIsTarget)
-        {
-            // Deselect this card
-            _selectedHandCard = null;
-            cardInteraction.IsSelected = false;
-
-            _buttonsPanel.SetActive(false);
+        if (card == _targetValueCard)
             return;
-        }
 
-        // Deselect the previous card if one has been selected unless it's the target value
-        if (_selectedHandCard != null && !handCardIsTarget)
-        {
-            _selectedHandCard.IsSelected = false;
-            _selectedHandCard.HideSelector();
-        }
+        bool alreadySelected = card.Selected;
+        DeselectHandCard(_selectedHandCard);
 
-        // Select this card
-        cardInteraction.IsSelected = true;
-        _selectedHandCard = cardInteraction;
+        // Deselecting a card that was already selected
+        if (alreadySelected)
+            return;
 
-        /* Selecting a card in hand should:
-         * - Bring up a button to set this as the target value for stacks or pick ups
-         * - Bring up a button for just dropping the card on the table
-         * */
-        _buttonsPanel.SetActive(true);
+        // Selecting a new card
+        SelectHandCard(card);
     }
 
-    private void HandleTableClick(CardInteraction cardInteraction, PointerEventData eventData)
+    private void HandleTableClick(CardInteraction card, PointerEventData eventData)
     {
-        bool cardInStack = false;
+        bool alreadyInStack = false;
         if(_stackedCards != null)
-            cardInStack = _stackedCards.Contains(cardInteraction);
+            alreadyInStack = _stackedCards.Contains(card);
 
-        if (cardInStack)
+        if (alreadyInStack)
             return;
 
-        bool alreadySelected = cardInteraction.IsSelected;
+        bool alreadySelected = card.Selected;
 
         if (alreadySelected)
         {
             // Deselect this card
-            DeselectTableCard(cardInteraction);
+            DeselectTableCard(card);
             return;
         }
 
-        SelectTableCard(cardInteraction);
+        SelectTableCard(card);
     }
 
     #endregion
 
     #region Button Actions
 
-    // Drops the selected card from the player's hand
-    public void DropCard()
+    public void PlayTurnAction(TurnAction turnAction)
     {
-        string cardName = _selectedHandCard.Card.Name;
-        Debug.Log($"Selected to drop the {_selectedHandCard.Card}");
+        byte eventCode = 0;
+        List<int> turnInfo = new List<int> { _playerTurnIndex };
 
-        _selectedHandCard.IsSelected = false;
-        _selectedHandCard.HideSelector();
-        SetSelectorColor(_selectedHandCard, _blackOutline);
+        int handCardIndex = _playerCards.IndexOf(_selectedHandCard);
+        int targetCardIndex = _playerCards.IndexOf(_targetValueCard);
 
-        if(_targetValueCard != null)
+        if (handCardIndex == -1)
         {
-            _targetValueCard.IsSelected = false;
-            _targetValueCard.HideSelector();
-            SetSelectorColor(_targetValueCard, _blackOutline);
-            _targetValueCard = null;
+            Debug.Log("Cannot do this action. You must play a card from your hand.");
+            return;
         }
 
-        foreach(CardInteraction card in _selectedTableCards)
+        switch (turnAction)
         {
-            card.IsSelected = false;
-            card.HideSelector();
-        }
-        _selectedTableCards.Clear();
+            case TurnAction.DropCard:
+                eventCode = EventManager.TURN_DROP_CARD_EVENT_CODE;
 
-        int cardIndex = _playerCards.IndexOf(_selectedHandCard);
-        int[] dropInfo = { _playerTurnIndex, cardIndex };
+                if (!ValidDrop())
+                    return;
+
+                turnInfo.Add(handCardIndex);
+                break;
+            case TurnAction.StackCards:
+                eventCode = EventManager.TURN_STACK_CARDS_EVENT_CODE;
+
+                if (!ValidStack())
+                    return;
+
+                /* The target value card is bound to this stack and cannot
+                 * be played unless the stack is picked up or changed, or
+                 * the target value card is added to the stack. */
+                _stackTargetCards.Add(_targetValueCard);
+
+                int locked = _stackIsLocked ? 1 : 0;
+                turnInfo.Add(_targetValue);
+                turnInfo.Add(locked);
+                turnInfo.Add(targetCardIndex);
+                turnInfo.Add(handCardIndex);
+
+                List<int> tableIndexes = new List<int>();
+                foreach (CardInteraction card in _stackedCards)
+                {
+                    int tableIndex = TableVisual.TableHand.IndexOf(card);
+
+                    /* The card from the sender's hand will be in _stackedCards
+                     * but not in TableHand. It's index is already included in
+                     * the stackInfo before this loop */
+                    if (tableIndex != -1)
+                        tableIndexes.Add(tableIndex);
+                }
+                tableIndexes.Sort();
+                turnInfo.AddRange(tableIndexes);
+                break;
+            case TurnAction.PickUpCards:
+                
+
+                break;
+        }
+
+        // Deselect all cards
+        DeselectCard(_selectedHandCard);
         _playerCards.Remove(_selectedHandCard);
+        _handCardInStack = false;
+        DeselectCard(_targetValueCard);
+        _targetValueCard = null;
+        _targetValue = 0;
+        DeselectCards(_selectedTableCards);
+        DeselectCards(_stackedCards);
 
+        _stackIsLocked = false;
         _buttonsPanel.SetActive(false);
 
-        EventManager.RaisePhotonEvent(EventManager.TURN_DROP_CARD_EVENT_CODE, dropInfo);
+        EventManager.RaisePhotonEvent(eventCode, turnInfo.ToArray());
     }
+
+    public void DropCard() => PlayTurnAction(TurnAction.DropCard);
+    public void StackCards() => PlayTurnAction(TurnAction.StackCards);
+    public void PickUpCards() => PlayTurnAction(TurnAction.PickUpCards);
 
     // Sets the selected card as the target value and updates the text
     public void SetCardAsTargetValue()
     {
-        if(_targetValueCard != null)
-        {
-            _targetValueCard.IsSelected = false;
-            _targetValueCard.HideSelector();
-            SetSelectorColor(_targetValueCard, _blackOutline);
-        }
+        if (_playerCards.Count < 2)
+            return;
 
+        DeselectCard(_targetValueCard);
         _targetValueCard = _selectedHandCard;
-        _targetValue = _targetValueCard.Card.NumberValue;
-        _targetValueText.text = $"{TARGET_VALUE_TEXT} {_targetValue}";
 
-        SetSelectorColor(_targetValueCard, _redOutline);
+        int targetValue = _targetValueCard.Value;
+        if (_targetValue != targetValue)
+        {
+            foreach (CardInteraction card in _stackedCards)
+                DeselectCard(card);
+            _stackedCards.Clear();
+            _stackIsLocked = false;
+            _handCardInStack = false;
+            _targetValue = targetValue;
+        }
+        _targetValueText.text = $"{TARGET_VALUE_TEXT} {_targetValue}";
+        _targetValueCard.SetSelectorColor(_redOutline);
+        _targetValueCard.ShowSelector();
+
+        if (!_handCardInStack)
+            _selectedHandCard = null;
     }
 
     // Attempts to add the selected cards to the stack
-    public void StackCards()
+    public void AddSelectedCardsToStack()
     {
         // Total up the value of all the selected cards
         int stackValue = 0;
-
-        foreach (CardInteraction cardInteraction in _selectedTableCards)
-        {
-            stackValue += cardInteraction.Card.NumberValue;
-        }
+        int totalSelectedCards = _selectedTableCards.Count;
 
         // Do NOT include the target value card,
         // but do include the selected card in hand if it's not the target value
-        bool selectedCardIsTarget = _selectedHandCard == _targetValueCard;
-        if (!selectedCardIsTarget)
+        // and it is not already in the stack.
+        bool handCardIsTarget = _selectedHandCard == _targetValueCard;
+        bool addSelectedHandCard = _selectedHandCard != null && !handCardIsTarget && !_handCardInStack;
+        if (addSelectedHandCard)
         {
-            stackValue += _selectedHandCard.Card.NumberValue;
+            totalSelectedCards++;
+            if (_selectedHandCard.Value == 14 && totalSelectedCards > 1)
+                stackValue++;
+            else
+                stackValue += _selectedHandCard.Value;
+        }
+
+        foreach (CardInteraction card in _selectedTableCards)
+        {
+            if (card.InteractionType == InteractionType.Stack)
+            {
+                StackedCardsInteraction stack = card as StackedCardsInteraction;
+                // Locked stacks cannot be built upon unless they match the target value
+                if (stack.Locked && stack.Value != _targetValue)
+                {
+                    Debug.Log($"The selected stack has a value of {stack.Value}. " +
+                        $"Cannot change it to {_targetValue}");
+                    return;
+                }
+            }
+
+            // If Aces are alone they have a value of 14, otherwise they have a value of 1
+            if (card.Value == 14 && totalSelectedCards > 1)
+                stackValue++;
+            else
+                stackValue += card.Value;
         }
         
         // Invalid selection due to stack value
@@ -264,39 +341,164 @@ public class TurnManager : MonoBehaviour
             return;
         }
 
+        if (!_stackIsLocked && _stackedCards.Count > 0)
+            _stackIsLocked = true;
+
         // Outline stacked cards in blue to show that they're part of the stack
-        foreach (CardInteraction cardInteraction in _selectedTableCards)
-        {
-            SetSelectorColor(cardInteraction, _blueOutline);
-            _stackedCards.Add(cardInteraction);
-        }
+        foreach (CardInteraction card in _selectedTableCards)
+            AddCardToStack(card);
+        _selectedTableCards.Clear();
 
-        if(!selectedCardIsTarget)
-        {
-            SetSelectorColor(_selectedHandCard, _blueOutline);
-            _stackedCards.Add(_selectedHandCard);
-        }
-
-         _selectedTableCards.Clear();
+        if (!handCardIsTarget)
+            AddCardToStack(_selectedHandCard);
     }
 
     #endregion
 
+    #region Card Selection
+
+    private void DeselectCard(CardInteraction card)
+    {
+        if (card == null)
+            return;
+
+        if (!card.Selected)
+            return;
+
+        card.Selected = false;
+        card.HideSelector();
+        card.SetSelectorColor(_blackOutline);
+    }
+
+    private void DeselectCards(List<CardInteraction> cards)
+    {
+        foreach (CardInteraction card in cards)
+            DeselectCard(card);
+        cards.Clear();
+    }
+
+    private void SelectHandCard(SingleCardInteraction card)
+    {
+        if (card == null)
+            return;
+
+        _selectedHandCard = card;
+        card.Selected = true;
+        card.ShowSelector();
+    }
+
+    private void DeselectHandCard(SingleCardInteraction card)
+    {
+        if (card == null)
+            return;
+
+        DeselectCard(card);
+        _selectedHandCard = null;
+    }
+
     private void SelectTableCard(CardInteraction card)
     {
+        if (card == null)
+            return;
+
         _selectedTableCards.Add(card);
-        card.IsSelected = true;
+        card.Selected = true;
+        card.ShowSelector();
     }
 
     private void DeselectTableCard(CardInteraction card)
     {
+        if (card == null)
+            return;
+
+        DeselectCard(card);
         _selectedTableCards.Remove(card);
-        card.IsSelected = false;
     }
 
-    private void SetSelectorColor(CardInteraction card, Color color)
+    #endregion
+
+    #region Action Validation
+
+    bool ValidDrop()
     {
-        Image selectorImage = card.GetSelectorImage();
-        selectorImage.color = color;
+        // Make sure the player isn't trying to drop a stack's target card
+        if (_stackTargetCards.Contains(_selectedHandCard))
+        {
+            Debug.Log("Cannot drop this card, it is tied to a stack on the table.");
+            return false;
+        }
+
+        return true;
+    }
+
+    bool ValidStack()
+    {
+        // Make sure the player is adding a card from their hand to the stack
+        if (!_handCardInStack)
+        {
+            Debug.Log("Cannot stack these cards: Missing a card from your hand.");
+            return false;
+        }
+
+        // Make sure the player is not using a stack's target card in a new stack
+        if (_stackTargetCards.Contains(_selectedHandCard))
+        {
+            bool targetStackInStack = false;
+            foreach (CardInteraction card in _stackedCards)
+            {
+                StackedCardsInteraction stack = card as StackedCardsInteraction;
+                if (stack == null)
+                    continue;
+
+                if (stack.TargetCard == _selectedHandCard)
+                    targetStackInStack = true;
+            }
+
+            if (!targetStackInStack)
+            {
+                Debug.Log("Cannot add the card in hand to this stack: It is bound to another stack.");
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    bool ValidPickUp()
+    {
+        return true;
+    }
+
+    #endregion
+
+    private void AddCardToStack(CardInteraction card)
+    {
+        if (card == null)
+            return;
+
+        if (card == _selectedHandCard)
+            _handCardInStack = true;
+
+        _stackedCards.Add(card);
+        card.SetSelectorColor(_blueOutline);
+    }
+}
+
+public enum TurnAction
+{
+    DropCard,
+    StackCards,
+    PickUpCards
+}
+
+class StackTargetPair
+{
+    public StackedCardsInteraction Stack { get; private set; }
+    public SingleCardInteraction TargetCard { get; private set; }
+
+    public StackTargetPair(StackedCardsInteraction stack, SingleCardInteraction targetCard)
+    {
+        Stack = stack;
+        TargetCard = targetCard;
     }
 }
