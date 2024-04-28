@@ -1,0 +1,1323 @@
+fileFormatVersion: 2
+guid: ce1d28b68109d8e469c85645d5d870b0
+TextureImporter:
+  internalIDToNameTable: []
+  externalObjects: {}
+  serializedVersion: 12
+  mipmaps:
+    mipMapMode: 0
+    enableMipMap: 0
+    sRGBTexture: 1
+    linearTexture: 0
+    fadeOut: 0
+    borderMipMap: 0
+    mipMapsPreserveCoverage: 0
+    alphaTestReferenceValue: 0.5
+    mipMapFadeDistanceStart: 1
+    mipMapFadeDistanceEnd: 3
+  bumpmap:
+    convertToNormalMap: 0
+    externalNormalMap: 0
+    heightScale: 0.25
+    normalMapFilter: 0
+    flipGreenChannel: 0
+  isReadable: 0
+  streamingMipmaps: 0
+  streamingMipmapsPriority: 0
+  vTOnly: 0
+  ignoreMipmapLimit: 0
+  grayScaleToAlpha: 0
+  generateCubemap: 6
+  cubemapConvolution: 0
+  seamlessCubemap: 0
+  textureFormat: 1
+  maxTextureSize: 2048
+  textureSettings:
+    serializedVersion: 2
+    filterMode: 1
+    aniso: 1
+    mipBias: 0
+    wrapU: 1
+    wrapV: 1
+    wrapW: 1
+  nPOTScale: 0
+  lightmap: 0
+  compressionQuality: 50
+  spriteMode: 2
+  spriteExtrude: 1
+  spriteMeshType: 1
+  alignment: 0
+  spritePivot: {x: 0.5, y: 0.5}
+  spritePixelsToUnits: 100
+  spriteBorder: {x: 0, y: 0, z: 0, w: 0}
+  spriteGenerateFallbackPhysicsShape: 1
+  alphaUsage: 1
+  alphaIsTransparency: 1
+  spriteTessellationDetail: -1
+  textureType: 8
+  textureShape: 1
+  singleChannelComponent: 0
+  flipbookRows: 1
+  flipbookColumns: 1
+  maxTextureSizeSet: 0
+  compressionQualitySet: 0
+  textureFormatSet: 0
+  ignorePngGamma: 0
+  applyGammaDecoding: 0
+  swizzle: 50462976
+  cookieLightType: 0
+  platformSettings:
+  - serializedVersion: 3
+    buildTarget: DefaultTexturePlatform
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 3
+    buildTarget: WebGL
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 3
+    buildTarget: Standalone
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 3
+    buildTarget: iPhone
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 3
+    buildTarget: Android
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 3
+    buildTarget: Windows Store Apps
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 3
+    buildTarget: Server
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  spriteSheet:
+    serializedVersion: 2
+    sprites:
+    - serializedVersion: 2
+      name: Star_Hearts_Ace
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 2400
+        width: 360
+        height: 200
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: efd948d3c1d10774697e603942ace206
+      internalID: 1202831088
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Star_Diamonds_Ace
+      rect:
+        serializedVersion: 2
+        x: 360
+        y: 2400
+        width: 360
+        height: 200
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 7265b1c106610cf458770508ecbad40c
+      internalID: 912965212
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Star_Clubs_Ace
+      rect:
+        serializedVersion: 2
+        x: 720
+        y: 2400
+        width: 360
+        height: 200
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 85a2e5be24169614c9a5f4a72d960c2a
+      internalID: 1886854468
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Star_Spades_Ace
+      rect:
+        serializedVersion: 2
+        x: 1080
+        y: 2400
+        width: 360
+        height: 200
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: eb3df24b38a8d0a46ba55b7414e555be
+      internalID: 596929834
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Star_Hearts_Two
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 2200
+        width: 360
+        height: 200
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 8396d804f5d315c47a54b7fa9d52c7b1
+      internalID: 2073365781
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Star_Diamonds_Two
+      rect:
+        serializedVersion: 2
+        x: 360
+        y: 2200
+        width: 360
+        height: 200
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 11538a19d82db6b4da4dcb63cf71343a
+      internalID: -676396443
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Star_Clubs_Two
+      rect:
+        serializedVersion: 2
+        x: 720
+        y: 2200
+        width: 360
+        height: 200
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 5b8cbe6290a11f94e9a644924460fc7e
+      internalID: 797356618
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Star_Spades_Two
+      rect:
+        serializedVersion: 2
+        x: 1080
+        y: 2200
+        width: 360
+        height: 200
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: cda539ab8f9751f46ab497dfedd7181a
+      internalID: -2028985052
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Star_Hearts_Three
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 2000
+        width: 360
+        height: 200
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: a4cdc7d5b060bf84a93c370c2ef29428
+      internalID: -266032383
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Star_Diamonds_Three
+      rect:
+        serializedVersion: 2
+        x: 360
+        y: 2000
+        width: 360
+        height: 200
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: ed5f5288391dfbe4d944797bd012fa61
+      internalID: -2063996079
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Star_Clubs_Three
+      rect:
+        serializedVersion: 2
+        x: 720
+        y: 2000
+        width: 360
+        height: 200
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 034916fa6b833fa448d5fdd89021525b
+      internalID: 485998603
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Star_Spades_Three
+      rect:
+        serializedVersion: 2
+        x: 1080
+        y: 2000
+        width: 360
+        height: 200
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 5ce834bbdf20fcf4bb9b412e1bf90478
+      internalID: -622270278
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Star_Hearts_Four
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 1800
+        width: 360
+        height: 200
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 25f9646f89ec810469fe2121778631e6
+      internalID: 987380891
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Star_Diamonds_Four
+      rect:
+        serializedVersion: 2
+        x: 360
+        y: 1800
+        width: 360
+        height: 200
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: a4ac0f4819e5db34a97d8a982c0f3947
+      internalID: 1205863947
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Star_Clubs_Four
+      rect:
+        serializedVersion: 2
+        x: 720
+        y: 1800
+        width: 360
+        height: 200
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: f279e20336299614a8ccbb244a6fc16d
+      internalID: 988214310
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Star_Spades_Four
+      rect:
+        serializedVersion: 2
+        x: 1080
+        y: 1800
+        width: 360
+        height: 200
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 94ca64a8b67c4664b82ad9c4f11c41c2
+      internalID: -1721936522
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Star_Hearts_Five
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 1600
+        width: 360
+        height: 200
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: f2a1aeea7f5d5a641933fe07699103ee
+      internalID: -832840313
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Star_Diamonds_Five
+      rect:
+        serializedVersion: 2
+        x: 360
+        y: 1600
+        width: 360
+        height: 200
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: dff9ef71f87dce444b8ed98a441d242f
+      internalID: 558888486
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Star_Clubs_Five
+      rect:
+        serializedVersion: 2
+        x: 720
+        y: 1600
+        width: 360
+        height: 200
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: bd0b28956cb6b894fbc50d44b6a77345
+      internalID: -836572135
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Star_Spades_Five
+      rect:
+        serializedVersion: 2
+        x: 1080
+        y: 1600
+        width: 360
+        height: 200
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: dc1988921a7289f448d092976a2ef412
+      internalID: 1046996890
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Star_Hearts_Six
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 1400
+        width: 360
+        height: 200
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 5974c6febd3c35345a189cd79a7214a7
+      internalID: 1999922834
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Star_Diamonds_Six
+      rect:
+        serializedVersion: 2
+        x: 360
+        y: 1400
+        width: 360
+        height: 200
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: a72350ab4e5cd9445ac00d4f54d272a7
+      internalID: -1042727174
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Star_Clubs_Six
+      rect:
+        serializedVersion: 2
+        x: 720
+        y: 1400
+        width: 360
+        height: 200
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: ee31120cf23a6914c96955933438c28f
+      internalID: -901120922
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Star_Spades_Six
+      rect:
+        serializedVersion: 2
+        x: 1080
+        y: 1400
+        width: 360
+        height: 200
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: f5ddeada32a35094981b001987a94230
+      internalID: -1451282403
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Star_Hearts_Seven
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 1200
+        width: 360
+        height: 200
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: ad2d6085440179a47b51285ab4d9db87
+      internalID: 44855326
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Star_Diamonds_Seven
+      rect:
+        serializedVersion: 2
+        x: 360
+        y: 1200
+        width: 360
+        height: 200
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 96d13be120aca5b41a97978fed60e028
+      internalID: -533711204
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Star_Clubs_Seven
+      rect:
+        serializedVersion: 2
+        x: 720
+        y: 1200
+        width: 360
+        height: 200
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 3df329bde54e4b4418eac62e81cfe047
+      internalID: -1133400996
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Star_Spades_Seven
+      rect:
+        serializedVersion: 2
+        x: 1080
+        y: 1200
+        width: 360
+        height: 200
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: ac9075cb9fb159447b15a7d5c2a9ea23
+      internalID: -821064572
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Star_Hearts_Eight
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 1000
+        width: 360
+        height: 200
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: d2677844280480b48909ebd4ba143c8d
+      internalID: 250518976
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Star_Diamonds_Eight
+      rect:
+        serializedVersion: 2
+        x: 364
+        y: 1000
+        width: 360
+        height: 200
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: aaff30976ddd4a24f9f5ac9264e385f2
+      internalID: 391267833
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Star_Clubs_Eight
+      rect:
+        serializedVersion: 2
+        x: 720
+        y: 1000
+        width: 360
+        height: 200
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 8c0627d0eaa680f4496beba688dbf151
+      internalID: -1261934310
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Star_Spades_Eight
+      rect:
+        serializedVersion: 2
+        x: 1080
+        y: 1000
+        width: 360
+        height: 200
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 59bdf556c650b6a45aeb0d84c0065368
+      internalID: 295992896
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Star_Hearts_Nine
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 800
+        width: 360
+        height: 200
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: a665a0d3a09cda04ba5c5febdf260fdd
+      internalID: -274762758
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Star_Diamonds_Nine
+      rect:
+        serializedVersion: 2
+        x: 360
+        y: 800
+        width: 360
+        height: 200
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 0d8bca6d67736404b8c775ecd2cb04e7
+      internalID: -1168446900
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Star_Clubs_Nine
+      rect:
+        serializedVersion: 2
+        x: 720
+        y: 800
+        width: 360
+        height: 200
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 63978728301a1e4479d4e898c112cdac
+      internalID: -786188758
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Star_Spades_Nine
+      rect:
+        serializedVersion: 2
+        x: 1080
+        y: 800
+        width: 360
+        height: 200
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: b3a932ac2920f804db4e71a7d2a52091
+      internalID: 619762825
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Star_Hearts_Ten
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 600
+        width: 360
+        height: 200
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 96d3965ae235b2e4995034a502ac6600
+      internalID: -2032934066
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Star_Diamonds_Ten
+      rect:
+        serializedVersion: 2
+        x: 360
+        y: 600
+        width: 360
+        height: 200
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 810755fa0dd780b4fb7c992be14713c0
+      internalID: -249449323
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Star_Clubs_Ten
+      rect:
+        serializedVersion: 2
+        x: 720
+        y: 600
+        width: 360
+        height: 200
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 4a93899046d417d43ae3b0dd4de4f045
+      internalID: 893191139
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Star_Spades_Ten
+      rect:
+        serializedVersion: 2
+        x: 1080
+        y: 600
+        width: 360
+        height: 200
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 06023412dcb141e41a0726ae68072de2
+      internalID: 814442958
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Star_Hearts_Jack
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 400
+        width: 360
+        height: 200
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 490818eefeb4a3c4e87ccb4188a5fbb7
+      internalID: 469104869
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Star_Diamonds_Jack
+      rect:
+        serializedVersion: 2
+        x: 360
+        y: 400
+        width: 360
+        height: 200
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 6bc1816cf42e2d747ae8632b064ecdca
+      internalID: -473451598
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Star_Clubs_Jack
+      rect:
+        serializedVersion: 2
+        x: 724
+        y: 400
+        width: 360
+        height: 200
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 6a8aec298cdfce54b9e008c1bb540b06
+      internalID: 292597578
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Star_Spades_Jack
+      rect:
+        serializedVersion: 2
+        x: 1080
+        y: 400
+        width: 360
+        height: 200
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 9a0524b8dc3ab6f4fbbcbd23c15a10ee
+      internalID: -105466105
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Star_Hearts_Queen
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 200
+        width: 360
+        height: 200
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: bcdec9cd869997b4b962a842eae85357
+      internalID: -788918194
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Star_Diamonds_Queen
+      rect:
+        serializedVersion: 2
+        x: 360
+        y: 200
+        width: 360
+        height: 200
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 73c2ef492f71cfb498c0d0b6dea5d33d
+      internalID: 1058954641
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Star_Clubs_Queen
+      rect:
+        serializedVersion: 2
+        x: 720
+        y: 200
+        width: 360
+        height: 200
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: d9880a6da58b43f4c980aa99d4596d98
+      internalID: 1962316242
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Star_Spades_Queen
+      rect:
+        serializedVersion: 2
+        x: 1080
+        y: 200
+        width: 360
+        height: 200
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 270d2f547df45ab4bad34a091f91758c
+      internalID: 1378463963
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Star_Hearts_King
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 0
+        width: 360
+        height: 200
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: ac3a5a73cfd258a418dda5037bdea821
+      internalID: -1016255540
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Star_Diamonds_King
+      rect:
+        serializedVersion: 2
+        x: 360
+        y: 0
+        width: 360
+        height: 200
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 32b0750a88e778542ac6ad08d8e1d791
+      internalID: -1557812448
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Star_Clubs_King
+      rect:
+        serializedVersion: 2
+        x: 720
+        y: 0
+        width: 360
+        height: 200
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 5c0d957e7fd67004587af8a234b72a94
+      internalID: -1065716484
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Star_Spades_King
+      rect:
+        serializedVersion: 2
+        x: 1080
+        y: 0
+        width: 360
+        height: 200
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 4ddb0c16b8f16cd4c92c5b0cec751a7f
+      internalID: -139215395
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    outline: []
+    physicsShape: []
+    bones: []
+    spriteID: 5e97eb03825dee720800000000000000
+    internalID: 0
+    vertices: []
+    indices: 
+    edges: []
+    weights: []
+    secondaryTextures: []
+    nameFileIdTable:
+      Star_Clubs_Ace: 1886854468
+      Star_Clubs_Eight: -1261934310
+      Star_Clubs_Five: -836572135
+      Star_Clubs_Four: 988214310
+      Star_Clubs_Jack: 292597578
+      Star_Clubs_King: -1065716484
+      Star_Clubs_Nine: -786188758
+      Star_Clubs_Queen: 1962316242
+      Star_Clubs_Seven: -1133400996
+      Star_Clubs_Six: -901120922
+      Star_Clubs_Ten: 893191139
+      Star_Clubs_Three: 485998603
+      Star_Clubs_Two: 797356618
+      Star_Diamonds_Ace: 912965212
+      Star_Diamonds_Eight: 391267833
+      Star_Diamonds_Five: 558888486
+      Star_Diamonds_Four: 1205863947
+      Star_Diamonds_Jack: -473451598
+      Star_Diamonds_King: -1557812448
+      Star_Diamonds_Nine: -1168446900
+      Star_Diamonds_Queen: 1058954641
+      Star_Diamonds_Seven: -533711204
+      Star_Diamonds_Six: -1042727174
+      Star_Diamonds_Ten: -249449323
+      Star_Diamonds_Three: -2063996079
+      Star_Diamonds_Two: -676396443
+      Star_Hearts_Ace: 1202831088
+      Star_Hearts_Eight: 250518976
+      Star_Hearts_Five: -832840313
+      Star_Hearts_Four: 987380891
+      Star_Hearts_Jack: 469104869
+      Star_Hearts_King: -1016255540
+      Star_Hearts_Nine: -274762758
+      Star_Hearts_Queen: -788918194
+      Star_Hearts_Seven: 44855326
+      Star_Hearts_Six: 1999922834
+      Star_Hearts_Ten: -2032934066
+      Star_Hearts_Three: -266032383
+      Star_Hearts_Two: 2073365781
+      Star_Spades_Ace: 596929834
+      Star_Spades_Eight: 295992896
+      Star_Spades_Five: 1046996890
+      Star_Spades_Four: -1721936522
+      Star_Spades_Jack: -105466105
+      Star_Spades_King: -139215395
+      Star_Spades_Nine: 619762825
+      Star_Spades_Queen: 1378463963
+      Star_Spades_Seven: -821064572
+      Star_Spades_Six: -1451282403
+      Star_Spades_Ten: 814442958
+      Star_Spades_Three: -622270278
+      Star_Spades_Two: -2028985052
+  mipmapLimitGroupName: 
+  pSDRemoveMatte: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
