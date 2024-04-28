@@ -53,6 +53,7 @@ public class NetworkManager : PunBehaviour
         {
             Debug.LogWarning("Attempted to log the players in a room," +
                 "but the client is not connected to Photon Network.");
+            return;
         }
 
         string players = "";
