@@ -88,7 +88,11 @@ public class StackedCardsInteraction : CardInteraction
         foreach (CardInteraction card in cards)
         {
             if (card.InteractionType == InteractionType.Stack)
-                Cards.AddRange(((StackedCardsInteraction)card).Cards);
+            {
+                StackedCardsInteraction stack = (StackedCardsInteraction)card;
+                TurnManager.ClearStack(stack);
+                Cards.AddRange(stack.Cards);
+            }
             else
                 Cards.Add((SingleCardInteraction)card);
         }

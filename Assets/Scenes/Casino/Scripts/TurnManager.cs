@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -17,6 +18,9 @@ public class TurnManager : MonoBehaviour
      *   Take Card(s)
      * */
     // TODO: [CARDS] Add clear stacks button
+
+    public static event Action<StackedCardsInteraction> StackCleared; 
+    public static void ClearStack(StackedCardsInteraction stack) => StackCleared?.Invoke(stack);
 
     private const string TARGET_VALUE_TEXT = "Target Value:";
 
@@ -48,6 +52,7 @@ public class TurnManager : MonoBehaviour
     {
         _selectedTableCards = new List<CardInteraction>();
         _stackedCards = new List<CardInteraction>();
+        _stackTargetCards = new List<SingleCardInteraction>();
     }
 
     private void OnEnable()
@@ -56,6 +61,8 @@ public class TurnManager : MonoBehaviour
         PhotonNetwork.OnEventCall += OnSetStarted;
         PhotonNetwork.OnEventCall += OnTurnStarted;
         PhotonNetwork.OnEventCall += OnTurnEnded;
+
+        StackCleared += OnStackCleared;
     }
 
     private void OnDisable()
@@ -64,6 +71,8 @@ public class TurnManager : MonoBehaviour
         PhotonNetwork.OnEventCall -= OnSetStarted;
         PhotonNetwork.OnEventCall -= OnTurnStarted;
         PhotonNetwork.OnEventCall -= OnTurnEnded;
+
+        StackCleared -= OnStackCleared;
     }
 
     #endregion
@@ -178,6 +187,13 @@ public class TurnManager : MonoBehaviour
         }
 
         SelectTableCard(card);
+    }
+
+    private void OnStackCleared(StackedCardsInteraction stack)
+    {
+        SingleCardInteraction card = stack.TargetCard;
+        if (_stackTargetCards.Contains(card))
+            _stackTargetCards.Remove(card);
     }
 
     #endregion
