@@ -7,15 +7,16 @@ public class Deck : MonoBehaviour
 {
     public static event Action<DeckType> DeckCreated;
 
-    [field: SerializeField] public List<Card> Cards { get; private set; }
-    public Card[] CardsArray { get { return Cards.ToArray(); } }
+    
+    public Card[] Cards { get { return _cards.ToArray(); } }
+    [SerializeField] private List<Card> _cards;
 
     [SerializeField] GameManager _gameManager;
 
     // Creates an array of cards (the deck) using the suit and face value enums
     public void CreateDeck(DeckType type)
     {
-        Cards = new List<Card>();
+        _cards = new List<Card>();
         DeckCreated?.Invoke(type);
 
         int index = 0;
@@ -23,18 +24,18 @@ public class Deck : MonoBehaviour
         {
             foreach (FaceValue fValue in Enum.GetValues(typeof(FaceValue)))
             {
-                Cards.Add(new Card(suit, fValue));
+                _cards.Add(new Card(suit, fValue));
                 index++;
             }
         }
 
-        Debug.Log($"Created a new deck of size {Cards.Count}.");
+        Debug.Log($"Created a new deck of size {_cards.Count}.");
     }
 
     // Fisher-Yates shuffle
     public void Shuffle()
     {
-        if(Cards == null)
+        if(_cards == null)
         {
             Debug.LogError("Attempted to shuffle but the deck has not been created!");
             return;
@@ -43,9 +44,9 @@ public class Deck : MonoBehaviour
         for(int i = 0; i < 51; i++)
         {
             int j = UnityEngine.Random.Range(i, 52);
-            Card tempCard = Cards[i];
-            Cards[i] = Cards[j];
-            Cards[j] = tempCard;
+            Card tempCard = _cards[i];
+            _cards[i] = _cards[j];
+            _cards[j] = tempCard;
         }
 
         Debug.Log("Deck shuffled!");
@@ -63,7 +64,7 @@ public class Deck : MonoBehaviour
         }
 
         // Deck hasn't been created
-        if(Cards == null)
+        if(_cards == null)
         {
             Debug.LogWarning("Attempted to deal but the deck has not been created yet.");
             Debug.Log("Creating a new deck, shuffling it, then dealing...");
@@ -72,7 +73,7 @@ public class Deck : MonoBehaviour
         }
 
         // No cards left
-        int cardsLeft = Cards.Count;
+        int cardsLeft = _cards.Count;
         if (cardsLeft == 0)
         {
             Debug.LogError("Attempted to deal but there were no cards left. Round should end.");
@@ -97,8 +98,8 @@ public class Deck : MonoBehaviour
         {
             for(int j = 0; j < numPlayers; j++)
             {
-                hands[j,i] = Cards[0];
-                Cards.RemoveAt(0);
+                hands[j,i] = _cards[0];
+                _cards.RemoveAt(0);
             }
         }
 
@@ -110,7 +111,7 @@ public class Deck : MonoBehaviour
         // Error Handling
 
         // Deck hasn't been created
-        if (Cards == null)
+        if (_cards == null)
         {
             Debug.LogWarning("Attempted to deal but the deck has not been created yet.");
             Debug.Log("Creating a new deck, shuffling it, then dealing...");
@@ -119,7 +120,7 @@ public class Deck : MonoBehaviour
         }
 
         // No cards left
-        int cardsLeft = Cards.Count;
+        int cardsLeft = _cards.Count;
         if (cardsLeft == 0)
         {
             Debug.LogError("Attempted to deal but there were no cards left. Round should end.");
@@ -140,8 +141,8 @@ public class Deck : MonoBehaviour
 
         for(int i = 0; i < 4; i++)
         {
-            tableHand[i] = Cards[0];
-            Cards.RemoveAt(0);
+            tableHand[i] = _cards[0];
+            _cards.RemoveAt(0);
         }
 
         return tableHand;

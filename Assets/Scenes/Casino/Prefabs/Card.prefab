@@ -188,5 +188,5 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0eb5ab1d041326a4f9dccea518c8b669, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  <CardType>k__BackingField: 2
   _selector: {fileID: 1910483893921392702}
+  <CardType>k__BackingField: 2

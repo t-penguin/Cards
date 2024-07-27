@@ -1,44 +1,61 @@
 using Photon;
-using System.Collections;
-using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
 using Hashtable = ExitGames.Client.Photon.Hashtable;
 
 public class CasinoDebugInfo : PunBehaviour
 {
-    [SerializeField] TextMeshProUGUI _nameDisplay;
-    [SerializeField] TextMeshProUGUI _listDisplay;
+    [SerializeField] TextMeshProUGUI _setAndRoundDisplay;
+    [SerializeField] TextMeshProUGUI _scoreDisplay;
 
-    void Start()
+    private void OnEnable()
     {
-        UpdateNameDisplay();
-        UpdateListDisplay();
+        PhotonNetwork.OnEventCall += UpdateSetAndRound;
+        PhotonNetwork.OnEventCall += UpdatePlayerScores;
     }
 
-    public override void OnPhotonPlayerConnected(PhotonPlayer newPlayer)
+    private void OnDisable()
     {
-        UpdateListDisplay();
+        PhotonNetwork.OnEventCall -= UpdateSetAndRound;
+        PhotonNetwork.OnEventCall -= UpdatePlayerScores;
     }
 
-    public override void OnPhotonPlayerDisconnected(PhotonPlayer otherPlayer)
+    public void UpdateSetAndRound(byte eventCode, object content, int senderId)
     {
-        UpdateListDisplay();
+        if (eventCode != EventManager.GAME_DEAL_HAND_EVENT_CODE)
+            return;
+
+        int currentSet = (int)PhotonNetwork.room.CustomProperties[GameManager.CURRENT_SET_KEY];
+        int currentRound = (int)PhotonNetwork.room.CustomProperties[GameManager.CURRENT_ROUND_KEY];
+        int maxRounds = (int)PhotonNetwork.room.CustomProperties[GameManager.MAX_ROUNDS_KEY];
+
+        _setAndRoundDisplay.text = $"Set: {currentSet} | Round: {currentRound} / {maxRounds}";
     }
 
-    public void UpdateNameDisplay()
+    public void UpdatePlayerScores(byte eventCode, object content, int senderId)
     {
-        _nameDisplay.text = $"Input Name: {Main.PlayerName}\n" +
-                            $"Photon Name: {PhotonNetwork.playerName}";
-    }
+        if (eventCode != EventManager.START_GAME_EVENT_CODE &&
+            eventCode != EventManager.GAME_SET_ENDED_EVENT_CODE)
+            return;
 
-    public void UpdateListDisplay()
-    {
-        _listDisplay.text = "In room:\n";
-        foreach (PhotonPlayer player in PhotonNetwork.playerList)
+        PhotonPlayer[] turnOrder = (PhotonPlayer[])PhotonNetwork.room.CustomProperties[GameManager.TURN_ORDER_KEY];
+        int[] scores = (int[])PhotonNetwork.room.CustomProperties[GameManager.TEAM_SCORES_KEY];
+
+        if (!(scores == null))
         {
-            _listDisplay.text += $"{player.NickName}\n";
+            foreach (int score in scores)
+                Debug.Log($"Score: {score}");
         }
+
+        string txt = "Scores:\n";
+        for (int i = 0; i < turnOrder.Length; i++)
+        {
+            int score = scores == null ? 0 : scores[i];
+            txt += $"{turnOrder[i].NickName} - {score}\n";
+        }
+
+        Debug.Log(txt);
+        _scoreDisplay.text = txt;
     }
 
     public static void LogPlayerHands()

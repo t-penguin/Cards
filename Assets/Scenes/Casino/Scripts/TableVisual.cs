@@ -3,7 +3,6 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
-using TMPro;
 using Photon;
 using Hashtable = ExitGames.Client.Photon.Hashtable;
 
@@ -23,15 +22,18 @@ public class TableVisual : PunBehaviour
     [SerializeField] RectTransform _deck;
     [SerializeField] RectTransform[] _playerHands;
     [SerializeField] GameObject[] _playerPanels;
+    [SerializeField] RectTransform[] _pickupPiles;
     [SerializeField] RectTransform _tableHand;
     [SerializeField] GameObject _tablePanel;
     [SerializeField] GameObject _startMenu;
 
-    List<GameObject> _activePlayerPanels;
-    List<RectTransform> _activePlayerHands;
+    List<GameObject> _activePlayerPanels = new();
+    List<RectTransform> _activePlayerHands = new();
+    List<RectTransform> _activePickupPiles = new();
 
     int _playerCount;
     int _tablePlayerOffset;
+    int _lastPickedUpIndex;
 
     Vector2 _defaultTableSize = new Vector2(550, 575);
     Vector2 _mediumTableSize = new Vector2(820, 575);
@@ -54,36 +56,55 @@ public class TableVisual : PunBehaviour
 
     private void OnEnable()
     {
-        PhotonNetwork.OnEventCall += OnTurnOrderSet;
-        PhotonNetwork.OnEventCall += OnGameSetStarted;
+        PhotonNetwork.OnEventCall += OnSetTable;
+        PhotonNetwork.OnEventCall += OnStartGame;
+        PhotonNetwork.OnEventCall += OnDealHand;
+        PhotonNetwork.OnEventCall += OnGameSetEnded;
         PhotonNetwork.OnEventCall += OnDroppedCard;
         PhotonNetwork.OnEventCall += OnStackedCards;
+        PhotonNetwork.OnEventCall += OnPickedUpCards;
+        PhotonNetwork.OnEventCall += OnClearTable;
     }
 
     private void OnDisable()
     {
-        PhotonNetwork.OnEventCall -= OnTurnOrderSet;
-        PhotonNetwork.OnEventCall -= OnGameSetStarted;
+        PhotonNetwork.OnEventCall -= OnSetTable;
+        PhotonNetwork.OnEventCall -= OnStartGame;
+        PhotonNetwork.OnEventCall -= OnDealHand;
+        PhotonNetwork.OnEventCall -= OnGameSetEnded;
         PhotonNetwork.OnEventCall -= OnDroppedCard;
         PhotonNetwork.OnEventCall -= OnStackedCards;
+        PhotonNetwork.OnEventCall -= OnPickedUpCards;
+        PhotonNetwork.OnEventCall -= OnClearTable;
     }
 
     #endregion
 
     #region PUN Event Callbacks
 
-    private void OnTurnOrderSet(byte eventCode, object content, int senderId)
+    private void OnSetTable(byte eventCode, object content, int senderID)
     {
-        if (eventCode != EventManager.TURN_ORDER_SET_EVENT_CODE)
+        if (eventCode != EventManager.SET_TABLE_EVENT_CODE)
             return;
 
         HideStartMenu();
         SetUpTable();
     }
 
-    private void OnGameSetStarted(byte eventCode, object content, int senderId)
+    private void OnStartGame(byte eventCode, object content, int senderID)
     {
-        if (eventCode != EventManager.GAME_SET_STARTED)
+        if (eventCode != EventManager.START_GAME_EVENT_CODE)
+            return;
+
+        PhotonPlayer[] TurnOrder =
+            (PhotonPlayer[])PhotonNetwork.room.CustomProperties[GameManager.TURN_ORDER_KEY];
+
+        _tablePlayerOffset = Array.IndexOf(TurnOrder, PhotonNetwork.player);
+    }
+
+    private void OnDealHand(byte eventCode, object content, int senderID)
+    {
+        if (eventCode != EventManager.GAME_DEAL_HAND_EVENT_CODE)
             return;
 
         Debug.Log("Game Started");
@@ -92,27 +113,48 @@ public class TableVisual : PunBehaviour
         StartCoroutine(StartDealing());
     }
 
-    private void OnDroppedCard(byte eventCode, object content, int senderId)
+    private void OnGameSetEnded(byte eventCode, object content, int senderID)
+    {
+        if (eventCode != EventManager.GAME_SET_ENDED_EVENT_CODE)
+            return;
+
+        ResetDeck();
+        ResetPickUpPiles();
+    }
+
+    private void OnDroppedCard(byte eventCode, object content, int senderID)
     {
         if (eventCode != EventManager.TURN_DROP_CARD_EVENT_CODE)
             return;
 
         int[] dropInfo = (int[])content;
-        StartCoroutine(DropCard(dropInfo));
+        StartCoroutine(Drop(dropInfo));
     }
 
-    private void OnStackedCards(byte eventCode, object content, int senderId)
+    private void OnStackedCards(byte eventCode, object content, int senderID)
     {
         if (eventCode != EventManager.TURN_STACK_CARDS_EVENT_CODE)
             return;
 
         int[] stackInfo = (int[])content;
-        StartCoroutine(StackCards(stackInfo));
+        StartCoroutine(Stack(stackInfo));
     }
 
-    private void OnTookCards(byte eventCode, object content, int senderId)
+    private void OnPickedUpCards(byte eventCode, object content, int senderID)
     {
+        if (eventCode != EventManager.TURN_PICK_UP_CARDS_EVENT_CODE)
+            return;
 
+        int[] pickUpInfo = (int[])content;
+        StartCoroutine(PickUp(pickUpInfo));
+    }
+
+    private void OnClearTable(byte eventCode, object content, int senderID)
+    {
+        if (eventCode != EventManager.TABLE_CLEAR_EVENT_CODE)
+            return;
+
+        StartCoroutine(ClearTable());
     }
 
     #endregion
@@ -135,8 +177,10 @@ public class TableVisual : PunBehaviour
             return;
         }
 
-        _activePlayerHands = new List<RectTransform>();
-        _activePlayerPanels = new List<GameObject>();
+        TableHand.Clear();
+        _activePlayerHands.Clear();
+        _activePlayerPanels.Clear();
+        _activePickupPiles.Clear();
         foreach (GameObject panel in _playerPanels)
             panel.SetActive(false);
 
@@ -148,17 +192,27 @@ public class TableVisual : PunBehaviour
             case 2: // Active Panels: Bottom, Top
                 AddActive(BOTTOM);
                 AddActive(TOP);
+
+                _activePickupPiles.Add(_pickupPiles[BOTTOM]);
+                _activePickupPiles.Add(_pickupPiles[TOP]);
                 break;
             case 3: // Active Panels: Bottom, Left, Right
                 AddActive(BOTTOM);
                 AddActive(LEFT);
                 AddActive(RIGHT);
+
+                _activePickupPiles.Add(_pickupPiles[BOTTOM]);
+                _activePickupPiles.Add(_pickupPiles[LEFT]);
+                _activePickupPiles.Add(_pickupPiles[RIGHT]);
                 break;
             case 4: // Active Panels: All
                 AddActive(BOTTOM);
                 AddActive(LEFT);
                 AddActive(TOP);
                 AddActive(RIGHT);
+
+                _activePickupPiles.Add(_pickupPiles[BOTTOM]);
+                _activePickupPiles.Add(_pickupPiles[LEFT]);
                 break;
         }
 
@@ -173,14 +227,25 @@ public class TableVisual : PunBehaviour
         foreach (GameObject panel in _activePlayerPanels)
             panel.SetActive(true);
 
+        foreach (RectTransform pile in _activePickupPiles)
+            pile.GetComponent<PileVisual>().ResetPile();
+
         _deck.gameObject.SetActive(true);
         _tablePanel.SetActive(true);
 
-        Debug.Log("Setting Table");
-
-        if (PhotonNetwork.isMasterClient)
-            EventManager.RaisePhotonEvent(EventManager.TABLE_SET_EVENT_CODE);
+        EventManager.RaisePhotonEvent(EventManager.START_GAME_EVENT_CODE);
     }
+
+    private void ResetPickUpPiles()
+    {
+        if (_activePickupPiles == null)
+            return;
+
+        foreach (RectTransform pile in _activePickupPiles)
+            pile.GetComponent<PileVisual>().ResetPile();
+    }
+
+    private void ResetDeck() => _deck.GetComponent<DeckVisual>().ResetDeck();
 
     #endregion
 
@@ -193,10 +258,13 @@ public class TableVisual : PunBehaviour
 
         int round = (int)PhotonNetwork.room.CustomProperties[GameManager.CURRENT_ROUND_KEY];
         if (round == 1)
+        {
             yield return StartCoroutine(DealToTable());
+            EventManager.RaisePhotonEvent(EventManager.GAME_SET_STARTED_EVENT_CODE);
+        }
 
-        if (PhotonNetwork.isMasterClient)
-            EventManager.RaisePhotonEvent(EventManager.TURN_STARTED_EVENT_CODE);
+        EventManager.RaisePhotonEvent(EventManager.GAME_START_TURN_EVENT_CODE);
+        EventManager.RaisePhotonEvent(EventManager.GAME_HAND_DEALT_EVENT_CODE);
     }
 
     // Visually deals cards from the deck to the players
@@ -213,15 +281,14 @@ public class TableVisual : PunBehaviour
             playerHands.Add((string[])PhotonNetwork.room.CustomProperties[key]);
         }
 
-        int playerCount = TurnOrder.Length;
         // Outer loop goes 4 times to give each player 4 cards
         for (int i = 0; i < 4; i++)
         {
             // Inner loop goes through each player
-            for (int j = 0; j < playerCount; j++)
+            for (int j = 0; j < _playerCount; j++)
             {
                 PhotonPlayer player = TurnOrder[j];
-                int playerIndex = (playerCount - _tablePlayerOffset + j) % playerCount;
+                int playerIndex = (j - _tablePlayerOffset + _playerCount) % _playerCount;
 
                 RectTransform target = _activePlayerHands[playerIndex];
                 string cardName = playerHands[j][i];
@@ -296,7 +363,7 @@ public class TableVisual : PunBehaviour
         yield break;
     }
 
-    private IEnumerator DropCard(int[] dropInfo)
+    private IEnumerator Drop(int[] dropInfo)
     {
         // Sender Info
         int senderIndex = dropInfo[0];
@@ -311,7 +378,7 @@ public class TableVisual : PunBehaviour
         SingleCardInteraction card = senderCards[cardIndex];
         RectTransform cardTransform = card.GetComponent<RectTransform>();
 
-        // Move card and resize if necessary
+        // Move card and rotate if necessary
         Vector3 targetPosition = _tableHand.anchoredPosition;
         Vector3 targetRotation = _tableHand.eulerAngles;
 
@@ -330,13 +397,12 @@ public class TableVisual : PunBehaviour
         CheckTableSize();
 
         // End Turn
-        if (PhotonNetwork.isMasterClient)
-            EventManager.RaisePhotonEvent(EventManager.TURN_ENDED_EVENT_CODE);
+        EventManager.RaisePhotonEvent(EventManager.GAME_END_TURN_EVENT_CODE);
 
         yield break;
     }
 
-    private IEnumerator StackCards(int[] stackInfo)
+    private IEnumerator Stack(int[] stackInfo)
     {
         // Sender Info
         int senderIndex = stackInfo[0];
@@ -368,15 +434,6 @@ public class TableVisual : PunBehaviour
         int[] tableCardIndexes = stackInfo[5..];
         int numTableCards = tableCardIndexes.Length;
 
-        // DEBUG
-        string infoArray = "";
-        foreach (int info in stackInfo)
-            infoArray += $"{info} ";
-
-        Debug.Log($"Info Array: {infoArray}");
-        Debug.Log($"Number of table cards in stack: {numTableCards}");
-        // END DEBUG
-
         CardInteraction[] tableCards = new CardInteraction[numTableCards];
         for (int i = 0; i < numTableCards; i++)
         {
@@ -384,7 +441,8 @@ public class TableVisual : PunBehaviour
             tableCards[i] = TableHand[cardIndex];
         }
 
-        Vector3 targetPosition = tableCards[0].GetComponent<RectTransform>().anchoredPosition;
+        Vector3 targetPosition = numTableCards > 0 ? 
+            tableCards[0].GetComponent<RectTransform>().anchoredPosition : _tableHand.anchoredPosition;
         List<GameObject> visualCards = new List<GameObject>();
 
         foreach (CardInteraction tableCard in tableCards)
@@ -427,7 +485,7 @@ public class TableVisual : PunBehaviour
         Destroy(senderCard.gameObject);
 
         // Add the stack to the table hand at the target position
-        int siblingIndex = tableCards[0].transform.GetSiblingIndex();
+        int siblingIndex = numTableCards > 0 ? tableCards[0].transform.GetSiblingIndex() : TableHand.Count;
         stackVisual.transform.SetParent(_tableHand);
         stackVisual.transform.SetSiblingIndex(siblingIndex);
         TableHand.Add(stack);
@@ -435,8 +493,109 @@ public class TableVisual : PunBehaviour
         CheckTableSize();
 
         // End Turn
-        if (PhotonNetwork.isMasterClient)
-            EventManager.RaisePhotonEvent(EventManager.TURN_ENDED_EVENT_CODE);
+        EventManager.RaisePhotonEvent(EventManager.GAME_END_TURN_EVENT_CODE);
+
+        yield break;
+    }
+
+    private IEnumerator PickUp(int[] pickupInfo)
+    {
+        // Sender Info
+        int senderIndex = pickupInfo[0];
+        Debug.Log($"Sender index in the turn order is: {senderIndex}");
+        int senderTableIndex = (senderIndex - _tablePlayerOffset + _playerCount) % _playerCount;
+        _lastPickedUpIndex = senderTableIndex;
+        RectTransform senderHand = _activePlayerHands[senderTableIndex];
+        SingleCardInteraction[] senderCards = senderHand.GetComponentsInChildren<SingleCardInteraction>();
+        RectTransform senderPileTransform = _activePickupPiles[senderTableIndex];
+        PickupPile senderPile = senderPileTransform.GetComponent<PickupPile>();
+
+        // Sender's Hand Card Info
+        int senderCardIndex = pickupInfo[1];
+        Debug.Log($"Card index in sender's hand is: {senderCardIndex}");
+        SingleCardInteraction card = senderCards[senderCardIndex];
+        RectTransform cardTransform = card.GetComponent<RectTransform>();
+
+        // Table Card(s) Info
+        int[] tableCardIndexes = pickupInfo[2..];
+        int numTableCards = tableCardIndexes.Length;
+
+        CardInteraction[] tableCards = new CardInteraction[numTableCards];
+        for (int i = 0; i < numTableCards; i++)
+        {
+            int cardIndex = tableCardIndexes[i];
+            tableCards[i] = TableHand[cardIndex];
+        }
+
+        // Add cards to the sender's pickup pile
+        foreach (CardInteraction tableCard in tableCards)
+        {
+            senderPile.AddCard(tableCard);
+
+            // Clear stacks once they're picked up
+            if (tableCard.InteractionType == InteractionType.Stack)
+            {
+                StackedCardsInteraction stack = (StackedCardsInteraction)tableCard;
+                TurnManager.ClearStack(stack);
+                Debug.Log("Attempting to clear stack...");
+            }
+        }
+
+        senderPile.AddCard(card);
+
+
+        /* *******
+         * TEMP DEBUG INFO
+         * ******* */
+
+        string txt = string.Empty;
+        foreach (CardInteraction tableCard in tableCards)
+            txt += $"{tableCard.Value} ";
+
+        Debug.Log($"Pick up successful.\n" +
+            $"Pick up info:\n" +
+            $"Sender card value: {card.Value}\n" +
+            $"Values of Cards/Stacks picked up: {txt}\n" +
+            $"New pile total: {senderPile.Count}\n" +
+            $"New pile point count: {senderPile.PointCardTotal}\n" +
+            $"New pile spade count: {senderPile.SpadeCardTotal}");
+
+        /* *******
+         * END DEBUG
+         * ******* */
+
+        // TODO: [CARDS] Move Cards to sender's pick up pile
+
+        // Delete all actual cards and the sender's card
+        foreach (CardInteraction tableCard in tableCards)
+            DeleteTableCard(tableCard);
+
+        Destroy(card.gameObject);
+
+        UpdatePileProperties();
+
+        // End Turn
+        EventManager.RaisePhotonEvent(EventManager.GAME_END_TURN_EVENT_CODE);
+
+        yield break;
+    }
+
+    private IEnumerator ClearTable()
+    {
+        PickupPile pile = _activePickupPiles[_lastPickedUpIndex].GetComponent<PickupPile>();
+        CardInteraction[] tableCards = TableHand.ToArray();
+
+        foreach (CardInteraction card in tableCards)
+        {
+            Debug.Log($"Adding leftover card to pile: {((SingleCardInteraction)card).Card.Name}");
+            pile.AddCard(card);
+            // TODO: [CARDS] Move cards to the pickup pile before destorying them
+            DeleteTableCard(card);
+        }
+
+        UpdatePileProperties();
+
+        EventManager.RaisePhotonEvent(EventManager.GAME_END_SET_EVENT_CODE);
 
         yield break;
     }
@@ -548,6 +707,43 @@ public class TableVisual : PunBehaviour
 
         TableHand.Remove(card);
         Destroy(card.gameObject);
+    }
+
+    private void UpdatePileProperties()
+    {
+        if (!PhotonNetwork.isMasterClient)
+            return;
+
+        int[] PileTotals = new int[_playerCount];
+        int[] PilePoints = new int[_playerCount];
+        int[] PileSpades = new int[_playerCount];
+        int[] PileTens = new int[_playerCount];
+        int[] PileTwos = new int[_playerCount];
+
+        int[] PileAceCount = new int[_playerCount];
+
+        for (int i = 0; i < _playerCount; i++)
+        {
+            int playerIndex = (i - _tablePlayerOffset + _playerCount) % _playerCount;
+
+            PickupPile pile = _activePickupPiles[playerIndex].GetComponent<PickupPile>();
+            PileTotals[playerIndex] = pile.Count;
+            PilePoints[playerIndex] = pile.PointCardTotal;
+            PileSpades[playerIndex] = pile.SpadeCardTotal;
+            PileTens[playerIndex] = pile.HasTenOfDiamonds ? 1 : 0;
+            PileTwos[playerIndex] = pile.HasTwoOfSpades ? 1 : 0;
+
+            PileAceCount[playerIndex] = pile.AceTotal;
+        }
+
+        PhotonNetwork.room.SetCustomProperties(new Hashtable {
+            { GameManager.PILE_TOTALS_KEY, PileTotals },
+            { GameManager.PILE_POINTS_KEY, PilePoints },
+            { GameManager.PILE_SPADES_KEY, PileSpades },
+            { GameManager.PILE_TENS_KEY, PileTens },
+            { GameManager.PILE_TWOS_KEY, PileTwos } });
+
+        PhotonNetwork.room.SetCustomProperties(new Hashtable { { GameManager.PILE_ACE_COUNT_KEY, PileAceCount } });
     }
 }
 

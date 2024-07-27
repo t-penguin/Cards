@@ -56,6 +56,17 @@ public class Card
         FaceValue = FaceValueDictionary[faceValue];
     }
 
+    public int GetPointValue()
+    {
+        if (Suit == Suit.Diamonds && FaceValue == FaceValue.Ten) return 2;
+        if (Suit == Suit.Spades && FaceValue == FaceValue.Two) return 1;
+        if (FaceValue == FaceValue.Ace) return 1;
+
+        return 0;
+    }
+
+    public bool IsSpade() => Suit == Suit.Spades;
+
     public override string ToString()
     {
         return $"{FaceValue} of {Suit}";

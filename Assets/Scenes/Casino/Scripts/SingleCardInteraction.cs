@@ -7,7 +7,7 @@ public class SingleCardInteraction : CardInteraction, IPointerEnterHandler, IPoi
 {
     [field: SerializeField] public CardType CardType { get; set; }
 
-    public Card Card { get; set; }
+    public Card Card { get; private set; }
 
     private void Awake()
     {

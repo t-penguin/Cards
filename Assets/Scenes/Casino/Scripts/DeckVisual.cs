@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -9,7 +10,9 @@ public class DeckVisual : MonoBehaviour
     [SerializeField] GameManager _gameManager;
     [SerializeField] List<Image> _deckBackVisual;
     
-    private int numPlayers;
+    private int _numPlayers;
+    private int _maxRounds;
+    private int _roundsRemaining;
 
     #region Monobehaviour Callbacks
 
@@ -17,14 +20,14 @@ public class DeckVisual : MonoBehaviour
     private void OnEnable()
     {
         Deck.DeckCreated += OnDeckCreated;
-        GameManager.HandDealt += OnHandDealt;
+        PhotonNetwork.OnEventCall += OnHandDealt;
     }
 
     // Unsubscribe to events
     private void OnDisable()
     {
         Deck.DeckCreated -= OnDeckCreated;
-        GameManager.HandDealt -= OnHandDealt;
+        PhotonNetwork.OnEventCall -= OnHandDealt;
     }
 
     // Set up and validate game objects for visuals
@@ -42,10 +45,8 @@ public class DeckVisual : MonoBehaviour
         if(_gameManager == null)
         {
             Debug.LogWarning("Game Manager not set! Setting number of players to 1...");
-            numPlayers = 1;
+            _numPlayers = 1;
         }
-
-        numPlayers = _gameManager.Players.Count;
     }
 
     #endregion
@@ -53,33 +54,41 @@ public class DeckVisual : MonoBehaviour
     #region Event Callbacks
 
     // Modifies the deck visual when a deck is created
-    void OnDeckCreated(DeckType type)
+    private void OnDeckCreated(DeckType type)
     {
         // Sets the sprite for the back of the cards of the deck
-        string backName = $"Back_{type.ToString().Split("_")[1]}";
         foreach(Image card in _deckBackVisual)
-            card.sprite = _gameManager.GetCardSpriteByName(backName);
+            card.sprite = GameManager.GetCardSpriteByName($"Back_{GameManager.DeckColor}");
 
-        // Sets the visual size of the deck based on the number of players
-        Debug.Log($"numPlayers: {numPlayers}");
-        int handsRemaining = numPlayers == 1 ? 6 : 52 / (numPlayers * 4);
-        ModifyDeckVisual(handsRemaining);
+        _numPlayers = ((PhotonPlayer[])PhotonNetwork.room.CustomProperties[GameManager.TURN_ORDER_KEY]).Length;
+        _maxRounds = _numPlayers == 1 ? 6 : 52 / (_numPlayers * 4);
+        _roundsRemaining = _maxRounds;
+        ResetDeck();
     }
 
-    // Modifies the deck visual when a hand is dealt
-    void OnHandDealt(int deckOffset)
+    private void OnHandDealt(byte eventCode, object content, int senderId)
     {
-        int handsRemaining = numPlayers == 1 ? 6 : (52 - deckOffset) / (numPlayers * 4);
-        Debug.Log($"Hand dealt. Remaining: {handsRemaining}\nCards Left: {52 - deckOffset} / Cards per Hand: {numPlayers * 4}");
-        ModifyDeckVisual(handsRemaining);
+        if (eventCode != EventManager.GAME_HAND_DEALT_EVENT_CODE)
+            return;
+
+        _roundsRemaining -= _roundsRemaining > 0 ? 1 : 0;
+        UpdateDeck(_roundsRemaining);
     }
 
     #endregion
 
-    // Modifies the deck visual depending on the number of hands remaining
-    private void ModifyDeckVisual(int handsRemaining)
+    // Modifies the deck visual depending on the number of rounds remaining
+    private void ModifyDeckVisual(int roundsLeft)
     {
         for (int i = 0; i < 6; i++)
-            _deckBackVisual[i].gameObject.SetActive(i < handsRemaining);
+            _deckBackVisual[i].gameObject.SetActive(i < roundsLeft);
     }
+
+    public void ResetDeck()
+    {
+        _roundsRemaining = _maxRounds;
+        ModifyDeckVisual(_maxRounds);
+    }
+
+    public void UpdateDeck(int remainingRounds) => ModifyDeckVisual(remainingRounds);
 }

@@ -3,13 +3,15 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
+using System.Collections.ObjectModel;
 
 public class StackedCardsInteraction : CardInteraction
 {
     public int OwnerIndex { get; private set; }
     public SingleCardInteraction TargetCard { get; private set; }
     public bool Locked { get; private set; }
-    public List<SingleCardInteraction> Cards { get; private set; }
+    public ReadOnlyCollection<SingleCardInteraction> Cards { get { return _cards.AsReadOnly(); } }
+    private List<SingleCardInteraction> _cards;
 
     [SerializeField] GameObject _stackVisualizer;
     [SerializeField] RectTransform _cardIcons;
@@ -84,17 +86,17 @@ public class StackedCardsInteraction : CardInteraction
         Locked = locked;
         _lock.gameObject.SetActive(locked);
 
-        Cards = new List<SingleCardInteraction>();
+        _cards = new List<SingleCardInteraction>();
         foreach (CardInteraction card in cards)
         {
             if (card.InteractionType == InteractionType.Stack)
             {
                 StackedCardsInteraction stack = (StackedCardsInteraction)card;
                 TurnManager.ClearStack(stack);
-                Cards.AddRange(stack.Cards);
+                _cards.AddRange(stack._cards);
             }
             else
-                Cards.Add((SingleCardInteraction)card);
+                _cards.Add((SingleCardInteraction)card);
         }
         _valueText.text = $"{Value}";
 
@@ -131,7 +133,7 @@ public class StackedCardsInteraction : CardInteraction
         int columnSize = (int)gridLayout.cellSize.x;
         int rowSize = (int)(gridLayout.cellSize.y);
 
-        int numCards = Cards.Count;
+        int numCards = _cards.Count;
         int columns = numCards > 24 ? 8 : 4;
 
         int rows = Mathf.CeilToInt((float)numCards / columns);
@@ -146,7 +148,7 @@ public class StackedCardsInteraction : CardInteraction
 
     public void SetCardIcons()
     {
-        foreach (SingleCardInteraction card in Cards)
+        foreach (SingleCardInteraction card in _cards)
         {
             GameObject cardIcon = Instantiate(_cardIconPrefab, _cardIcons.transform);
             cardIcon.GetComponent<Image>().sprite = GameManager.GetCardIconByName(card.Card.Name);
