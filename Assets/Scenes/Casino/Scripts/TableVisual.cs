@@ -5,6 +5,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using Photon;
 using Hashtable = ExitGames.Client.Photon.Hashtable;
+using TMPro;
 
 public class TableVisual : PunBehaviour
 {
@@ -34,6 +35,7 @@ public class TableVisual : PunBehaviour
     int _playerCount;
     int _tablePlayerOffset;
     int _lastPickedUpIndex;
+    Vector2 _tablePanelOffset;
 
     Vector2 _defaultTableSize = new Vector2(550, 575);
     Vector2 _mediumTableSize = new Vector2(820, 575);
@@ -49,8 +51,6 @@ public class TableVisual : PunBehaviour
 
     Vector2 _defaultSpacing = new Vector2(10, 10);
     Vector2 _smallSpacing = new Vector2(5, 10);
-
-    Color _transparent = new Color(0, 0, 0, 0);
 
     #region Monobehaviour Callbacks
 
@@ -76,6 +76,11 @@ public class TableVisual : PunBehaviour
         PhotonNetwork.OnEventCall -= OnStackedCards;
         PhotonNetwork.OnEventCall -= OnPickedUpCards;
         PhotonNetwork.OnEventCall -= OnClearTable;
+    }
+
+    private void Awake()
+    {
+        _tablePanelOffset = _tablePanel.GetComponent<RectTransform>().anchoredPosition;
     }
 
     #endregion
@@ -127,6 +132,7 @@ public class TableVisual : PunBehaviour
         if (eventCode != EventManager.TURN_DROP_CARD_EVENT_CODE)
             return;
 
+        Debug.Log("Recieved event to drop card");
         int[] dropInfo = (int[])content;
         StartCoroutine(Drop(dropInfo));
     }
@@ -335,10 +341,7 @@ public class TableVisual : PunBehaviour
         cardVisualTransform.anchorMin = targetHand.anchorMin;
         cardVisualTransform.anchorMax = targetHand.anchorMax;
 
-        yield return MoveAndRotateCard(cardVisualTransform, targetPosition, targetRotation);
-
-        //cardVisualTransform.anchoredPosition = targetPosition;
-        //cardVisualTransform.eulerAngles = targetRotation;
+        yield return StartCoroutine(MoveAndRotateCard(cardVisualTransform, targetPosition, targetRotation));
 
         // Parent the card to the target hand
         cardVisualTransform.SetParent(targetHand);
@@ -379,13 +382,13 @@ public class TableVisual : PunBehaviour
         RectTransform cardTransform = card.GetComponent<RectTransform>();
 
         // Move card and rotate if necessary
-        Vector3 targetPosition = _tableHand.anchoredPosition;
+        Vector2 targetPosition = _tableHand.anchoredPosition + _tablePanelOffset;
         Vector3 targetRotation = _tableHand.eulerAngles;
 
-        cardTransform.SetParent(_deck.parent);
+        cardTransform.SetParent(_tablePanel.transform);
         yield return StartCoroutine(MoveAndRotateCard(cardTransform, targetPosition, targetRotation));
         cardTransform.SetParent(_tableHand);
-        
+
         // Turn the card face up and add it to the table hand
         Image cardImage = card.GetComponent<Image>();
         string cardName = card.Card.Name;
@@ -434,39 +437,44 @@ public class TableVisual : PunBehaviour
         int[] tableCardIndexes = stackInfo[5..];
         int numTableCards = tableCardIndexes.Length;
 
+        string txt = "Table Card Indexes: ";
         CardInteraction[] tableCards = new CardInteraction[numTableCards];
         for (int i = 0; i < numTableCards; i++)
         {
             int cardIndex = tableCardIndexes[i];
             tableCards[i] = TableHand[cardIndex];
-        }
 
-        Vector3 targetPosition = numTableCards > 0 ? 
+            txt += $"{cardIndex}, ";
+        }
+        Debug.Log(txt);
+
+        Vector2 targetPosition = numTableCards > 0 ? 
             tableCards[0].GetComponent<RectTransform>().anchoredPosition : _tableHand.anchoredPosition;
         List<GameObject> visualCards = new List<GameObject>();
 
+        // Duplicate each card and hide the original
+        // Keeps the grid layout in place until the stack is made
         foreach (CardInteraction tableCard in tableCards)
         {
-            // Create a visual card for the current table card
-            Vector3 cardPosition = tableCard.GetComponent<RectTransform>().anchoredPosition;
-            GameObject cardVisual = Instantiate(_cardVisualPrefab, cardPosition, Quaternion.identity, _deck);
-            visualCards.Add(cardVisual);
+            Vector3 position = tableCard.GetComponent<RectTransform>().anchoredPosition;
+            GameObject cardVisual = Instantiate(tableCard.gameObject, _tablePanel.transform);
             RectTransform cardTransform = cardVisual.GetComponent<RectTransform>();
+            cardTransform.anchorMin = Vector2.one / 2;
+            cardTransform.anchorMax = Vector2.one / 2;
+            cardTransform.anchoredPosition = position;
 
-            // Change the actual card's image alpha to 0
-            // This keeps all the table cards in their positions until the stack is finished
-            tableCard.GetComponent<Image>().color = _transparent;
+            visualCards.Add(cardVisual);
+            tableCard.Hide();
 
-            // Move the visual card to the target position
             yield return StartCoroutine(MoveCard(cardTransform, targetPosition));
         }
 
         // Once all visual cards have been moved, move the sender's card to the target position
-        senderCardTransform.SetParent(_deck.parent);
+        senderCardTransform.SetParent(_tablePanel.transform);
         yield return StartCoroutine(MoveCard(senderCardTransform, targetPosition));
 
         // Create the stack card at the target position
-        GameObject stackVisual = Instantiate(_stackVisualPrefab, targetPosition, Quaternion.identity, _deck);
+        GameObject stackVisual = Instantiate(_stackVisualPrefab, targetPosition, Quaternion.identity, _tablePanel.transform);
         StackedCardsInteraction stack = stackVisual.GetComponent<StackedCardsInteraction>();
         List<CardInteraction> cardsInStack = new List<CardInteraction>{ senderCard };
         cardsInStack.AddRange(tableCards);
@@ -488,7 +496,7 @@ public class TableVisual : PunBehaviour
         int siblingIndex = numTableCards > 0 ? tableCards[0].transform.GetSiblingIndex() : TableHand.Count;
         stackVisual.transform.SetParent(_tableHand);
         stackVisual.transform.SetSiblingIndex(siblingIndex);
-        TableHand.Add(stack);
+        TableHand.Insert(siblingIndex, stack);
 
         CheckTableSize();
 
@@ -527,9 +535,30 @@ public class TableVisual : PunBehaviour
             tableCards[i] = TableHand[cardIndex];
         }
 
+        // Reveal the sender's card
+        Image cardImage = card.GetComponent<Image>();
+        string cardName = card.Card.Name;
+        Sprite cardSprite = GameManager.GetCardSpriteByName(cardName);
+        cardImage.sprite = cardSprite;
+
         // Add cards to the sender's pickup pile
+        Vector2 targetPosition = senderPileTransform.anchoredPosition;
+        Vector3 targetRotation = senderPileTransform.eulerAngles;
+        List <GameObject> visualCards = new List<GameObject>();
         foreach (CardInteraction tableCard in tableCards)
         {
+            Vector3 position = tableCard.GetComponent<RectTransform>().anchoredPosition + _tablePanelOffset;
+            GameObject cardVisual = Instantiate(tableCard.gameObject, _tablePanel.transform.parent);
+            RectTransform visualCardTransform = cardVisual.GetComponent<RectTransform>();
+            visualCardTransform.anchorMin = Vector2.one / 2;
+            visualCardTransform.anchorMax = Vector2.one / 2;
+            visualCardTransform.anchoredPosition = position;
+
+            visualCards.Add(cardVisual);
+            tableCard.Hide();
+
+            yield return StartCoroutine(MoveAndRotateCard(visualCardTransform, targetPosition, targetRotation));
+
             senderPile.AddCard(tableCard);
 
             // Clear stacks once they're picked up
@@ -541,6 +570,8 @@ public class TableVisual : PunBehaviour
             }
         }
 
+        cardTransform.SetParent(_tablePanel.transform.parent);
+        yield return StartCoroutine(MoveAndRotateCard(cardTransform, targetPosition, targetRotation));
         senderPile.AddCard(card);
 
 
@@ -564,7 +595,10 @@ public class TableVisual : PunBehaviour
          * END DEBUG
          * ******* */
 
-        // TODO: [CARDS] Move Cards to sender's pick up pile
+        // Delete all visual cards
+        foreach (GameObject visualCard in visualCards)
+            Destroy(visualCard);
+        visualCards.Clear();
 
         // Delete all actual cards and the sender's card
         foreach (CardInteraction tableCard in tableCards)
@@ -573,6 +607,10 @@ public class TableVisual : PunBehaviour
         Destroy(card.gameObject);
 
         UpdatePileProperties();
+
+        // TODO: [CARDS] Check for sweep points
+        if (IsSweep())
+            UpdateSweepScore(senderIndex);
 
         // End Turn
         EventManager.RaisePhotonEvent(EventManager.GAME_END_TURN_EVENT_CODE);
@@ -600,17 +638,38 @@ public class TableVisual : PunBehaviour
         yield break;
     }
 
-    private IEnumerator MoveCard(RectTransform cardTransform, Vector3 targetPosition)
+    private IEnumerator MoveCard(RectTransform cardTransform, Vector2 targetPosition)
     {
-        Debug.Log("Move Card NYI...");
-        cardTransform.anchoredPosition = targetPosition;
-
-        yield break;
+        yield return StartCoroutine(MoveAndRotateCard(cardTransform, targetPosition, cardTransform.eulerAngles));
     }
 
-    private IEnumerator MoveAndRotateCard(RectTransform cardTransform, Vector3 targetPosition, Vector3 targetRotation)
+    private IEnumerator MoveAndRotateCard(RectTransform cardTransform, Vector2 targetPosition, Vector3 targetRotation)
     {
-        Debug.Log("Move and Rotate NYI...");
+        Vector2 position = cardTransform.anchoredPosition;
+        Vector3 rotation = cardTransform.eulerAngles;
+        float distance = (targetPosition - position).magnitude;
+        float theta = (targetRotation - rotation).magnitude;
+        float totalTime = 0.25f;
+        int increments = 15;
+        float maxDistanceDelta = distance / increments;
+        float maxAngleDelta = theta / increments;
+
+        Debug.Log($"Start: {position.x}, {position.y}\n" +
+            $"Distance: {distance}\n" +
+            $"Epsilon: {maxDistanceDelta / 2}");
+        if (distance > 10)
+        {
+            while (distance > maxDistanceDelta / 2)
+            {
+                position = Vector2.MoveTowards(position, targetPosition, maxDistanceDelta);
+                rotation = Vector3.MoveTowards(rotation, targetRotation, maxAngleDelta);
+                cardTransform.anchoredPosition = position;
+                cardTransform.eulerAngles = rotation;
+                distance = (targetPosition - position).magnitude;
+                yield return new WaitForSeconds(totalTime / increments);
+            }
+        }
+
         cardTransform.anchoredPosition = targetPosition;
         cardTransform.eulerAngles = targetRotation;
 
@@ -649,7 +708,7 @@ public class TableVisual : PunBehaviour
 
     private void SetTableSize(TableSize targetSize)
     {
-        GridLayoutGroup layout = _tableHand.GetComponent<GridLayoutGroup>();
+        TableHandLayoutGroup layout = _tableHand.GetComponent<TableHandLayoutGroup>();
 
         Vector2 selectorSize = _defaultSelectorSize;
 
@@ -744,6 +803,36 @@ public class TableVisual : PunBehaviour
             { GameManager.PILE_TWOS_KEY, PileTwos } });
 
         PhotonNetwork.room.SetCustomProperties(new Hashtable { { GameManager.PILE_ACE_COUNT_KEY, PileAceCount } });
+    }
+
+    private bool IsSweep() => TableHand.Count == 0;
+
+    private void UpdateSweepScore(int senderIndex)
+    {
+        Debug.Log("Sweep scored!");
+
+        if (!PhotonNetwork.isMasterClient)
+            return;
+
+        int[] sweepScore = (int[])PhotonNetwork.room.CustomProperties[GameManager.SWEEP_SCORE_KEY];
+        if (sweepScore == null)
+            sweepScore = new int[2];
+
+        int teamIndex = sweepScore[0];
+        int totalSweeps = sweepScore[1];
+
+        if (totalSweeps > 0)
+            totalSweeps--;
+        else
+        {
+            teamIndex = senderIndex;
+            totalSweeps = 1;
+        }
+
+        sweepScore[0] = teamIndex;
+        sweepScore[1] = totalSweeps;
+
+        PhotonNetwork.room.SetCustomProperties(new Hashtable { { GameManager.SWEEP_SCORE_KEY, sweepScore} });
     }
 }
 

@@ -19,9 +19,10 @@ public static class EventManager
 
     public static RaiseEventOptions DefaultEventOptions = new RaiseEventOptions { Receivers = ReceiverGroup.All };
 
-    public static void RaisePhotonEvent(byte eventCode, object eventContent = null, bool sendReliable = true)
+    public static void RaisePhotonEvent(byte eventCode, bool onlySendIfMaster = true,
+        object eventContent = null, bool sendReliable = true)
     {
-        if(!PhotonNetwork.isMasterClient)
+        if(onlySendIfMaster && !PhotonNetwork.isMasterClient)
             return;
 
         PhotonNetwork.RaiseEvent(eventCode, eventContent, sendReliable, DefaultEventOptions);

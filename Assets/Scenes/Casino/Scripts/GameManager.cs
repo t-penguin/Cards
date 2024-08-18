@@ -21,6 +21,7 @@ public class GameManager : MonoBehaviour
     public const string PILE_TENS_KEY = "Pile Ten Of Diamonds Flags";
     public const string PILE_TWOS_KEY = "Pile Two Of Spades Flags";
     public const string TEAM_SCORES_KEY = "Team Scores";
+    public const string SWEEP_SCORE_KEY = "Sweep Score";
 
     public const string PILE_ACE_COUNT_KEY = "Pile Ace Count";
 
@@ -273,6 +274,7 @@ public class GameManager : MonoBehaviour
         int[] pickupSpades = (int[])PhotonNetwork.room.CustomProperties[PILE_SPADES_KEY];
         int[] pickupTens = (int[])PhotonNetwork.room.CustomProperties[PILE_TENS_KEY];
         int[] pickupTwos = (int[])PhotonNetwork.room.CustomProperties[PILE_TWOS_KEY];
+        int[] sweepTotal = (int[])PhotonNetwork.room.CustomProperties[SWEEP_SCORE_KEY];
 
         int[] pickupAces = (int[])PhotonNetwork.room.CustomProperties[PILE_ACE_COUNT_KEY];
 
@@ -285,13 +287,15 @@ public class GameManager : MonoBehaviour
             int points = currentPoints[index];
             int mostCardsPoints = index == mostCardsIndex ? 3 : 0;
             int mostSpadesPoints = index == mostSpadesIndex ? 1 : 0;
-            int totalPoints = points + mostCardsPoints + mostSpadesPoints + pickupPoints[index];
+            int sweepPoints = sweepTotal[0] == index ? sweepTotal[1] : 0;
+            int totalPoints = points + mostCardsPoints + mostSpadesPoints + pickupPoints[index] + sweepPoints;
             Debug.Log($"Points gained:\n" +
                 $"Ace Count: {pickupAces[index]}\n" +
                 $"10 of Diamonds: {pickupTens[index] == 1}\n" +
                 $"2 of Spades: {pickupTwos[index] == 1}\n" +
                 $"Cards: {mostCardsPoints}\n" +
-                $"Spades: {mostSpadesPoints}");
+                $"Spades: {mostSpadesPoints}\n" +
+                $"Sweep Points: {sweepPoints}");
             switch (points)
             {
                 default:

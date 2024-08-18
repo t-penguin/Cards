@@ -15,6 +15,8 @@ public abstract class CardInteraction : MonoBehaviour, IPointerEnterHandler, IPo
     public int Value { get; protected set; }
     public InteractionType InteractionType { get; protected set; }
 
+    private Color _transparent = new Color(0, 0, 0, 0);
+
     #region Pointer Callbacks
 
     public virtual void OnPointerEnter(PointerEventData eventData)
@@ -39,6 +41,12 @@ public abstract class CardInteraction : MonoBehaviour, IPointerEnterHandler, IPo
     }
 
     #endregion
+
+    public virtual void Hide()
+    {
+        GetComponent<Image>().color = _transparent;
+        HideSelector();
+    }
 
     public void ShowSelector() => _selector.SetActive(true);
     public void HideSelector() => _selector.SetActive(false);

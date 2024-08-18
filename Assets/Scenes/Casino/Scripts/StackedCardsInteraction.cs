@@ -1,4 +1,3 @@
-using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
@@ -13,6 +12,7 @@ public class StackedCardsInteraction : CardInteraction
     public ReadOnlyCollection<SingleCardInteraction> Cards { get { return _cards.AsReadOnly(); } }
     private List<SingleCardInteraction> _cards;
 
+    [SerializeField] GameObject _infoContainer;
     [SerializeField] GameObject _stackVisualizer;
     [SerializeField] RectTransform _cardIcons;
     [SerializeField] TextMeshProUGUI _ownerText;
@@ -75,6 +75,12 @@ public class StackedCardsInteraction : CardInteraction
     {
         Selected = false;
         InteractionType = InteractionType.Stack;
+    }
+
+    public override void Hide()
+    {
+        _infoContainer.SetActive(false);
+        base.Hide();
     }
 
     public void CreateStack(int ownderIndex, int value, bool locked, List<CardInteraction> cards,

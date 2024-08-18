@@ -582,7 +582,7 @@ public class TurnManager : MonoBehaviour
         _lockStack = false;
         _buttonsPanel.SetActive(false);
 
-        EventManager.RaisePhotonEvent(eventCode, turnInfo.ToArray());
+        EventManager.RaisePhotonEvent(eventCode, false, turnInfo.ToArray());
     }
 
     private void AddStackedCardsToInfo(int handCardIndex, List<int> turnInfo)
